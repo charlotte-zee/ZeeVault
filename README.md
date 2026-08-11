@@ -2,8 +2,8 @@
 
 A sleek, modern app launcher and vault for Windows. Organize your games, tools, and files in one beautiful interface.
 
-![ZeeVault](<img width="964" height="661" alt="image" src="https://github.com/user-attachments/assets/0cc3b215-5656-4896-ac89-cc56404a7be3" />
-)
+<img width="964" height="661" alt="image" src="https://github.com/user-attachments/assets/524db5f1-5236-4b37-b993-f301518c54ee" />
+
 
 ## Features
 
