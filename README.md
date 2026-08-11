@@ -57,13 +57,33 @@ ZeeVault is source-available software provided under the
 You may download and use ZeeVault personally and modify your private copy
 for personal improvements, fixes, customization, and experimentation.
 
-Redistribution, publication, commercial use, resale, sublicensing, and
-distribution of modified versions are prohibited.
+You may also fork this repository or create a branch for the purpose of
+improving ZeeVault and submit your changes to the official repository
+through a Pull Request.
 
-All distribution and commercial rights are reserved exclusively by
-Charlotte Zee.
+Independent redistribution, publication, commercial use, resale,
+sublicensing, and distribution of modified versions are prohibited.
+
+Forks and modified copies may not be distributed independently or presented
+as official ZeeVault releases.
+
+Only the official ZeeVault repository may publish or distribute official
+ZeeVault releases.
 
 Copyright © 2026 Charlotte Zee. All rights reserved.
+
+## Contributions
+
+Contributions and improvements are welcome.
+
+You may fork the repository, make improvements, fixes, or features, and
+submit them through a Pull Request to the official ZeeVault repository.
+
+All contributions are subject to review and may be accepted, modified,
+or rejected at the discretion of the project maintainer.
+
+Contributing does not grant permission to independently distribute, sell,
+publish, or commercially exploit ZeeVault or modified versions of it.
 
 ## Author
 
