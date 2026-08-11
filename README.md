@@ -51,7 +51,7 @@ dotnet run
 
 ## License
 
-MIT
+[GNU GPL v3](LICENSE) — Free to use, modify, and redistribute. Commercial use not allowed.
 
 ## Author
 
