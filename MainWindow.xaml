@@ -1,0 +1,609 @@
+<ui:FluentWindow x:Class="GameVault.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:Wpf.Ui.Controls;assembly=Wpf.Ui"
+        xmlns:models="clr-namespace:GameVault.Models"
+        xmlns:services="clr-namespace:GameVault.Services"
+        Title="ZeeVault" Height="660" Width="960"
+        WindowStartupLocation="CenterScreen"
+        WindowBackdropType="Acrylic"
+        ExtendsContentIntoTitleBar="True"
+        WindowCornerPreference="Round"
+        Background="Transparent"
+        ResizeMode="CanResize"
+        AllowDrop="True"
+        DragEnter="Window_DragEnter"
+        DragLeave="Window_DragLeave"
+        Drop="Window_Drop"
+        SizeChanged="Window_SizeChanged">
+
+    <ui:FluentWindow.Resources>
+
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="#22FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="BtnBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="1" ScaleY="1"/>
+                            </Border.RenderTransform>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="BtnBorder"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#44FFFFFF" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="BtnBorder"
+                                                     Storyboard.TargetProperty="(Border.RenderTransform).(ScaleTransform.ScaleX)"
+                                                     To="1.1" Duration="0:0:0.12"/>
+                                            <DoubleAnimation Storyboard.TargetName="BtnBorder"
+                                                     Storyboard.TargetProperty="(Border.RenderTransform).(ScaleTransform.ScaleY)"
+                                                     To="1.1" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="BtnBorder"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#22FFFFFF" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="BtnBorder"
+                                                     Storyboard.TargetProperty="(Border.RenderTransform).(ScaleTransform.ScaleX)"
+                                                     To="1" Duration="0:0:0.12"/>
+                                            <DoubleAnimation Storyboard.TargetName="BtnBorder"
+                                                     Storyboard.TargetProperty="(Border.RenderTransform).(ScaleTransform.ScaleY)"
+                                                     To="1" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SpinCloseButton" TargetType="Button">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="#22FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="CloseBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <RotateTransform Angle="0"/>
+                            </Border.RenderTransform>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="CloseBorder"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#FF4444" Duration="0:0:0.2"/>
+                                            <DoubleAnimation Storyboard.TargetName="CloseBorder"
+                                                     Storyboard.TargetProperty="(Border.RenderTransform).(RotateTransform.Angle)"
+                                                     To="90" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="CloseBorder"
+                                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                    To="#22FFFFFF" Duration="0:0:0.2"/>
+                                            <DoubleAnimation Storyboard.TargetName="CloseBorder"
+                                                     Storyboard.TargetProperty="(Border.RenderTransform).(RotateTransform.Angle)"
+                                                     To="0" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TabButtonStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="#CBD5E1"/>
+                                <Setter TargetName="border" Property="Background" Value="#18FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                <Setter TargetName="border" Property="Background" Value="#6366F1"/>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#6366F1" BlurRadius="10" ShadowDepth="0" Opacity="0.5"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SearchBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#10FFFFFF"/>
+            <Setter Property="Foreground" Value="#E2E8F0"/>
+            <Setter Property="BorderBrush" Value="#18FFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
+                            <Grid>
+                                <TextBlock Text="&#x2315;  Search..." Foreground="#3C4A5E" Margin="11,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" FontSize="12">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}" Value="">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#506366F1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="4"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+    </ui:FluentWindow.Resources>
+
+    <Border x:Name="MainBorder" Background="#880A090F" BorderBrush="#14FFFFFF" BorderThickness="1" CornerRadius="10" ClipToBounds="True">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+                <ui:TitleBar Title="" ShowMaximize="False" ShowMinimize="False" ShowClose="False" Height="48" Padding="10,0">
+                <ui:TitleBar.Header>
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="2,0,18,0">
+                            <Border Width="26" Height="26" CornerRadius="7" Background="#6366F1">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#6366F1" BlurRadius="10" ShadowDepth="0" Opacity="0.6"/>
+                                </Border.Effect>
+                                <TextBlock Text="&#x26A1;" Foreground="White" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="ZeeVault" Foreground="#E2E8F0" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <RadioButton Content="All" Style="{StaticResource TabButtonStyle}" IsChecked="True" Checked="Tab_Checked" Tag="All"/>
+                            <RadioButton Content="&#x1F3AE; Games" Style="{StaticResource TabButtonStyle}" Checked="Tab_Checked" Tag="Games"/>
+                            <RadioButton Content="&#x1F6E0; Tools" Style="{StaticResource TabButtonStyle}" Checked="Tab_Checked" Tag="Tools"/>
+                            <RadioButton Content="&#x1F4C2; Files" Style="{StaticResource TabButtonStyle}" Checked="Tab_Checked" Tag="Files"/>
+                        </StackPanel>
+
+                        <TextBox x:Name="TxtSearch" Grid.Column="2" Width="175" Style="{StaticResource SearchBoxStyle}"
+                                 TextChanged="TxtSearch_TextChanged" GotFocus="TxtSearch_GotFocus" PreviewMouseDown="TxtSearch_PreviewMouseDown"
+                                 Margin="0,0,10,0"/>
+
+                        <Button Content="+ Add" Grid.Column="3" Click="AddItem_Click" Padding="12,5" Background="#6366F1" Foreground="White" FontWeight="Bold" FontSize="12" BorderThickness="0" Cursor="Hand" Margin="0,0,6,0">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="7"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+
+                        <Button x:Name="SettingsBtn" Grid.Column="4" Style="{StaticResource WindowControlButton}" Content="&#x2699;" Click="SettingsBtn_Click" Margin="0,0,4,0" FontSize="16"/>
+
+                        <Button Grid.Column="5" Style="{StaticResource WindowControlButton}" Content="&#x2500;" Click="MinimizeBtn_Click" FontSize="14" FontWeight="Bold" Margin="0,0,6,0"/>
+
+                        <Button Grid.Column="6" Style="{StaticResource WindowControlButton}" Content="&#x25A1;" Click="MaximizeBtn_Click" FontSize="14" FontWeight="Bold" Margin="0,0,6,0"/>
+
+                        <Button Grid.Column="7" Style="{StaticResource SpinCloseButton}" Content="&#x2715;" Click="CloseBtn_Click" Margin="0,0,8,0"/>
+                    </Grid>
+                </ui:TitleBar.Header>
+            </ui:TitleBar>
+
+            <Grid Grid.Row="1" Margin="10,4,10,10">
+                <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
+                              CanContentScroll="False">
+                    <ItemsControl x:Name="ItemsGrid" VerticalAlignment="Top">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="4" VerticalAlignment="Top"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:VaultItem}">
+                                 <Border x:Name="CardBorder"
+                                         Margin="5" Height="100"
+                                         CornerRadius="10"
+                                         Background="#0AFFFFFF"
+                                         BorderBrush="#0EFFFFFF"
+                                         BorderThickness="1"
+                                         Cursor="Hand"
+                                         AllowDrop="True"
+                                         PreviewMouseLeftButtonDown="ItemCard_PreviewMouseLeftButtonDown"
+                                         PreviewMouseMove="ItemCard_PreviewMouseMove"
+                                         MouseLeftButtonUp="ItemCard_MouseLeftButtonUp"
+                                         DragOver="ItemCard_DragOver"
+                                         DragLeave="ItemCard_DragLeave"
+                                         Drop="ItemCard_Drop">
+                                     <Border.Effect>
+                                         <DropShadowEffect Color="#000000" BlurRadius="6" ShadowDepth="1" Opacity="0.4"/>
+                                     </Border.Effect>
+                                     <Border.ContextMenu>
+                                         <ContextMenu>
+                                             <MenuItem Header="&#x25B6; Launch" Click="MenuLaunch_Click" Tag="{Binding}"/>
+                                             <MenuItem Header="&#x1F4DD; Rename" Click="MenuRename_Click" Tag="{Binding}"/>
+                                             <MenuItem Header="&#x2699;&#xFE0F; Change Executable Target..." Click="MenuChangePath_Click" Tag="{Binding}"/>
+                                             <MenuItem Header="&#x1F5BC;&#xFE0F; Change Icon..." Click="MenuChangeIcon_Click" Tag="{Binding}"/>
+                                             <MenuItem Header="&#x21BA; Reset Icon" Click="MenuResetIcon_Click" Tag="{Binding}"/>
+                                             <MenuItem Header="&#x1F4C1; Open File Location" Click="MenuOpenLocation_Click" Tag="{Binding}"/>
+                                             <MenuItem Header="&#x1F5D1;&#xFE0F; Remove from Vault" Click="MenuRemove_Click" Tag="{Binding}"/>
+                                         </ContextMenu>
+                                     </Border.ContextMenu>
+
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="18"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="24"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Category + Extension row -->
+                                        <Grid Grid.Row="0" Margin="5,4,5,0">
+                                            <Border HorizontalAlignment="Left" CornerRadius="4" Padding="3,1" Background="#1A6366F1">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding CategoryIcon}" FontSize="8" VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                                    <TextBlock Text="{Binding Category}" Foreground="#5B7A9A" FontSize="7.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border HorizontalAlignment="Right" CornerRadius="3" Padding="3,1" Background="#12FFFFFF">
+                                                <TextBlock Text="{Binding ExtensionDisplay}" Foreground="#3E5272" FontSize="7" FontWeight="Bold"/>
+                                            </Border>
+                                        </Grid>
+
+                                        <!-- Icon -->
+                                        <Border Grid.Row="1" Width="36" Height="36"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Grid>
+                                                <Image Source="{Binding IconSource}" RenderOptions.BitmapScalingMode="HighQuality" Stretch="Uniform"/>
+                                                <!-- Fallback Icon if IconSource is null -->
+                                                <TextBlock Text="{Binding CategoryIcon}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IconSource}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Title -->
+                                        <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,0">
+                                            <TextBlock x:Name="TxtTitleName"
+                                                       Text="{Binding Title}"
+                                                       Foreground="#7A90A8"
+                                                       FontSize="10"
+                                                       FontWeight="Medium"
+                                                       TextAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       MaxWidth="120"/>
+                                            <Border x:Name="Underline"
+                                                    Height="1.5" Background="#6366F1"
+                                                    Margin="0,2,0,0"
+                                                    HorizontalAlignment="Center"
+                                                    Width="0"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Border.Triggers>
+                                        <EventTrigger RoutedEvent="Border.MouseEnter">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetName="CardBorder"
+                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                        To="#1CFFFFFF" Duration="0:0:0.12"/>
+                                                    <ColorAnimation Storyboard.TargetName="CardBorder"
+                                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                        To="#456366F1" Duration="0:0:0.12"/>
+                                                    <ColorAnimation Storyboard.TargetName="TxtTitleName"
+                                                        Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                                        To="#E2E8F0" Duration="0:0:0.12"/>
+                                                    <DoubleAnimation Storyboard.TargetName="Underline"
+                                                        Storyboard.TargetProperty="Width"
+                                                        To="34" Duration="0:0:0.18"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                        <EventTrigger RoutedEvent="Border.MouseLeave">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetName="CardBorder"
+                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                        To="#08FFFFFF" Duration="0:0:0.18"/>
+                                                    <ColorAnimation Storyboard.TargetName="CardBorder"
+                                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                        To="#0DFFFFFF" Duration="0:0:0.18"/>
+                                                    <ColorAnimation Storyboard.TargetName="TxtTitleName"
+                                                        Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                                        To="#7A90A8" Duration="0:0:0.18"/>
+                                                    <DoubleAnimation Storyboard.TargetName="Underline"
+                                                        Storyboard.TargetProperty="Width"
+                                                        To="0" Duration="0:0:0.14"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Border.Triggers>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                                    <!-- Drag & Drop Overlay -->
+                <Border x:Name="DropOverlay" Background="#D2080710" CornerRadius="10"
+                        Visibility="Collapsed" IsHitTestVisible="False">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="&#x1F4E5;" FontSize="40" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <TextBlock Text="Drop items here to add to ZeeVault"
+                                   Foreground="#E2E8F0" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Supports .exe, .lnk, .doc, .txt, .zip and any file"
+                                   Foreground="#64748B" FontSize="11" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Smart Windows App Search Dropdown Popup -->
+                <Popup x:Name="SearchDropdown"
+                       PlacementTarget="{Binding ElementName=TxtSearch}"
+                       Placement="Bottom"
+                       AllowsTransparency="True"
+                       Focusable="False"
+                       StaysOpen="False"
+                       IsOpen="False">
+                    <!-- Outer Border padding gives DropShadowEffect a 14px buffer so native hwnd doesn't clip shadow into a square box -->
+                    <Border Padding="14" Background="Transparent">
+                        <Border Background="#E6111728" BorderBrush="#306366F1" BorderThickness="1" CornerRadius="14" Width="330" MaxHeight="360">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#6366F1" BlurRadius="20" ShadowDepth="2" Opacity="0.3"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Popup Header -->
+                                <Border Grid.Row="0" Background="#12FFFFFF" CornerRadius="13,13,0,0" Padding="14,10" BorderBrush="#15FFFFFF" BorderThickness="0,0,0,1">
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="⚡" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="WINDOWS APP SEARCH" Foreground="#94A3B8" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="TxtResultCount" Text="0 apps found" Foreground="#64748B" FontSize="9.5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Results List -->
+                                <Border Grid.Row="1" CornerRadius="0,0,13,13" ClipToBounds="True">
+                                    <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled" MaxHeight="300" Padding="4,4,4,6">
+                                        <ItemsControl x:Name="SearchResultsList">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type services:WindowsAppSearchResult}">
+                                                    <Border Margin="2,2" Padding="10,8" CornerRadius="8" Background="Transparent" Cursor="Hand" MouseLeftButtonDown="SearchResult_Click">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Style.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#20FFFFFF"/>
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="32"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <!-- App Icon -->
+                                                            <Border Grid.Column="0" Width="28" Height="28" CornerRadius="7" Background="#12FFFFFF" VerticalAlignment="Center">
+                                                                <Grid>
+                                                                    <Image Source="{Binding Icon}" RenderOptions.BitmapScalingMode="HighQuality" Stretch="Uniform"/>
+                                                                    <TextBlock Text="⚡" FontSize="12" Foreground="#818CF8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding Icon}" Value="{x:Null}">
+                                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                </Grid>
+                                                            </Border>
+
+                                                            <!-- App Name Only (No Subtitle / No AUMID / No GUID) -->
+                                                            <TextBlock Grid.Column="1" Text="{Binding Name}" Foreground="#F8FAFC" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,6,0" TextTrimming="CharacterEllipsis"/>
+
+                                                            <!-- Source Pill Badge -->
+                                                            <Border Grid.Column="2" VerticalAlignment="Center" CornerRadius="5" Padding="6,2.5" Background="#206366F1">
+                                                                <TextBlock Text="{Binding Source}" Foreground="#A5B4FC" FontSize="8.5" FontWeight="Bold"/>
+                                                            </Border>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Border>
+                </Popup>
+
+                <!-- Add from Search Popup Modal -->
+                <Border x:Name="AddFromSearchPopup" Visibility="Collapsed" Background="#CC0A090F"
+                        CornerRadius="12" IsHitTestVisible="True" MouseLeftButtonDown="AddFromSearchPopup_Background_Click">
+                    <Border HorizontalAlignment="Center" VerticalAlignment="Center" Width="380"
+                            Background="#1A1830" BorderBrush="#2A2740" BorderThickness="1" CornerRadius="12"
+                            Padding="0" Margin="20">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#6366F1" BlurRadius="24" ShadowDepth="0" Opacity="0.3"/>
+                        </Border.Effect>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Header -->
+                            <Border Grid.Row="0" Background="#12FFFFFF" CornerRadius="12,12,0,0" Padding="16,12">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Width="32" Height="32" CornerRadius="8" Background="#6366F1" Margin="0,0,10,0">
+                                            <Border.Effect>
+                                                <DropShadowEffect Color="#6366F1" BlurRadius="8" ShadowDepth="0" Opacity="0.5"/>
+                                            </Border.Effect>
+                                            <TextBlock Text="&#x2795;" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Name="PopupAppName" Text="Add App" Foreground="#E2E8F0" FontSize="14" FontWeight="Bold"/>
+                                            <TextBlock x:Name="PopupAppPath" Text="" Foreground="#5B7A9A" FontSize="10" TextTrimming="CharacterEllipsis" MaxWidth="240"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <Button Content="&#x2715;" HorizontalAlignment="Right" Click="AddFromSearchPopup_Close"
+                                            Background="Transparent" Foreground="#64748B" FontSize="14" Cursor="Hand"
+                                            BorderThickness="0" Padding="4"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Content -->
+                            <StackPanel Grid.Row="1" Margin="20,16">
+                                <!-- App Icon Preview -->
+                                <Border HorizontalAlignment="Center" Width="56" Height="56" CornerRadius="10" Background="#12FFFFFF" Margin="0,0,0,14">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#6366F1" BlurRadius="12" ShadowDepth="0" Opacity="0.3"/>
+                                    </Border.Effect>
+                                    <Image x:Name="PopupAppIcon" RenderOptions.BitmapScalingMode="HighQuality" Stretch="Uniform"/>
+                                </Border>
+
+                                <!-- Title Input -->
+                                <TextBlock Text="APP NAME" Foreground="#5B7A9A" FontSize="9" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <Border Background="#0AFFFFFF" BorderBrush="#18FFFFFF" BorderThickness="1" CornerRadius="6" Margin="0,0,0,14">
+                                    <TextBox x:Name="PopupTitleInput" Background="Transparent" Foreground="#E2E8F0"
+                                             BorderThickness="0" Padding="10,8" FontSize="13" CaretBrush="#6366F1"/>
+                                </Border>
+
+                                <!-- Category Selector -->
+                                <TextBlock Text="CATEGORY" Foreground="#5B7A9A" FontSize="9" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <Grid Margin="0,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <RadioButton x:Name="PopupCatGames" Grid.Column="0" Content="&#x1F3AE; Games"
+                                                 Style="{StaticResource TabButtonStyle}" Tag="Games" IsChecked="True"/>
+                                    <RadioButton x:Name="PopupCatTools" Grid.Column="1" Content="&#x1F6E0; Tools"
+                                                 Style="{StaticResource TabButtonStyle}" Tag="Tools"/>
+                                    <RadioButton x:Name="PopupCatFiles" Grid.Column="2" Content="&#x1F4C2; Files"
+                                                 Style="{StaticResource TabButtonStyle}" Tag="Files"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Footer Button -->
+                            <Border Grid.Row="2" Padding="20,0,20,16">
+                                <Button Content="&#x2795;  Add to ZeeVault" Click="AddFromSearchPopup_Confirm"
+                                        Padding="16,10" Background="#6366F1" Foreground="White" FontWeight="Bold" FontSize="13"
+                                        BorderThickness="0" Cursor="Hand" HorizontalAlignment="Stretch">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="8"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</ui:FluentWindow>
