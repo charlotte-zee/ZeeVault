@@ -51,7 +51,19 @@ dotnet run
 
 ## License
 
-[ZeeVault Non-Commercial Source-Available License](LICENSE) — Free for personal, non-commercial use. Commercial use not allowed.
+ZeeVault is source-available software provided under the
+[ZeeVault Personal Use and Modification License](LICENSE).
+
+You may download and use ZeeVault personally and modify your private copy
+for personal improvements, fixes, customization, and experimentation.
+
+Redistribution, publication, commercial use, resale, sublicensing, and
+distribution of modified versions are prohibited.
+
+All distribution and commercial rights are reserved exclusively by
+Charlotte Zee.
+
+Copyright © 2026 Charlotte Zee. All rights reserved.
 
 ## Author
 

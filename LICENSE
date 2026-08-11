@@ -1,87 +1,143 @@
-ZEEVAULT NON-COMMERCIAL SOURCE-AVAILABLE LICENSE
+ZEEVAULT PERSONAL USE AND MODIFICATION LICENSE
 Version 1.0
 
 Copyright (c) 2026 Charlotte Zee
 All rights reserved.
 
-1. GRANT OF RIGHTS
+1. LICENSE GRANT
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated source code (the "Software"), to:
+Permission is granted, free of charge, to any individual obtaining an
+authorized copy of this software and its source code (the "Software") to:
 
+- Download and install the Software for personal, non-commercial use.
 - Use the Software for personal, non-commercial purposes.
 - View and study the source code.
-- Modify the source code for personal, non-commercial purposes.
-- Create derivative works for personal, non-commercial purposes.
-- Share unmodified or modified copies of the Software free of charge,
-  provided that this license and the copyright notice remain included.
-- Submit improvements, fixes, features, or other contributions to the
-  original project.
+- Modify a private copy of the source code for personal use.
+- Create private modifications, fixes, improvements, customizations, or
+  experimental changes intended to improve or otherwise work with ZeeVault.
 
-2. NON-COMMERCIAL RESTRICTION
+This license grants rights only to the individual who lawfully obtains the
+Software.
 
-The Software may NOT be:
+2. COMMERCIAL USE PROHIBITED
 
-- Sold or offered for sale.
-- Licensed, sublicensed, or rented for a fee.
-- Included in a paid software product or commercial bundle.
-- Distributed as part of a commercial product or service.
-- Used to provide a paid service where the Software itself is a material
-  part of that service.
-- Monetized through a modified or redistributed version of the Software.
+The Software may not be used for any commercial purpose.
 
-No person or organization may use the Software or a derivative work for
-commercial purposes without prior written permission from the copyright
-holder.
+You may not:
 
-3. MODIFICATIONS
+- Sell the Software.
+- Sell modified versions of the Software.
+- Rent, lease, sublicense, or license the Software to another person.
+- Charge money for access to the Software.
+- Include the Software in a paid product or commercial bundle.
+- Use the Software as part of a paid service.
+- Monetize the Software or any modified version of it.
+- Use the Software to generate commercial revenue.
 
-You may modify the Software for personal, non-commercial purposes.
+No commercial rights are granted by this license.
 
-If you publicly distribute a modified version free of charge, you must:
+3. REDISTRIBUTION PROHIBITED
 
-- Clearly identify that the Software has been modified.
-- Preserve the original copyright notice.
-- Preserve this license.
-- Include the corresponding modified source code.
-- Not represent the modified version as an official release of ZeeVault.
+Redistribution of the Software is prohibited.
 
-4. ATTRIBUTION
+You may not:
 
-The original copyright notice, project name, and license notice must not be
-removed from redistributed copies.
+- Upload the Software to another website, repository, file host, mirror,
+  download service, or distribution platform.
+- Share copies of the Software with other people.
+- Distribute the original binaries or source code.
+- Distribute modified binaries or modified source code.
+- Publish a fork or derivative distribution of ZeeVault.
+- Package ZeeVault with another application or project for distribution.
+- Re-upload ZeeVault to GitHub, GitLab, Bitbucket, or any other repository
+  or hosting platform.
 
-5. TRADEMARKS AND BRANDING
+Any copy downloaded under this license is for the recipient's own personal
+use only.
 
-"ZeeVault", "ZenytheLabs", associated logos, artwork, names, and branding are
-not granted for use as trademarks or branding by this license.
+4. PRIVATE MODIFICATION
 
-Permission to modify the source code does not grant permission to represent
-a modified version as an official ZeeVault release.
+You may modify your private copy of the Software for personal,
+non-commercial purposes.
 
-6. COMMERCIAL LICENSE
+Permitted modifications include:
 
-Commercial use may be permitted only with explicit written permission from
-the copyright holder.
+- Bug fixes.
+- Performance improvements.
+- UI improvements.
+- Feature improvements.
+- Compatibility improvements.
+- Accessibility improvements.
+- Personal customizations.
+- Experimental development intended to improve ZeeVault.
 
-For commercial licensing inquiries, contact:
+Modified copies must remain private and may not be distributed,
+published, uploaded, sold, or otherwise provided to another person.
 
-ZenytheLabs
-https://zenythelabs.in
+5. NO PUBLIC DERIVATIVE WORKS
 
-7. NO WARRANTY
+You may not publish, distribute, or make available any derivative work,
+fork, modified version, port, rewrite, or adaptation of ZeeVault.
+
+You may modify ZeeVault privately, but all such modifications must remain
+under your personal control and may not be released to the public.
+
+6. OWNERSHIP
+
+The Software, including its source code, architecture, original artwork,
+branding, logos, documentation, and other original materials, remains the
+exclusive property of Charlotte Zee.
+
+This license does not transfer ownership or copyright.
+
+All rights not expressly granted by this license are reserved by the
+copyright holder.
+
+7. TRADEMARKS AND BRANDING
+
+"ZeeVault", "ZenytheLabs", associated logos, artwork, names, and branding
+remain the property of the copyright holder.
+
+This license does not grant permission to use these names, logos, or
+branding for another project or product.
+
+Modified private copies may not be represented as official releases of
+ZeeVault.
+
+8. EXCLUSIVE DISTRIBUTION AND COMMERCIAL RIGHTS
+
+The copyright holder retains the exclusive right to:
+
+- Distribute the Software.
+- Publish the Software.
+- Sell the Software.
+- License the Software commercially.
+- Create and distribute official releases.
+- Authorize third-party distribution.
+- Authorize commercial use.
+
+No other person or organization is granted these rights.
+
+9. NO WARRANTY
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHOR OR COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
-OF THE SOFTWARE.
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
-8. TERMINATION
+IN NO EVENT SHALL THE AUTHOR OR COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM,
+DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT OF, OR IN CONNECTION WITH
+THE SOFTWARE OR THE USE OF THE SOFTWARE.
+
+10. TERMINATION
 
 Any rights granted under this license terminate automatically if the terms
 of this license are violated.
 
-Upon termination, the recipient must cease distribution and commercial use
-of the Software and any derivative works covered by this license.
+Upon termination, the recipient must immediately cease using the Software
+and must delete all copies and modified copies in their possession or
+control.
+
+11. COPYRIGHT
+
+Copyright (c) 2026 Charlotte Zee
+All rights reserved.
