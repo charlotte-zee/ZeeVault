@@ -1,21 +1,87 @@
-                    GNU GENERAL PUBLIC LICENSE
-                       Version 3, 29 June 2007
+ZEEVAULT NON-COMMERCIAL SOURCE-AVAILABLE LICENSE
+Version 1.0
 
- Copyright (C) 2024 ZeeVault
+Copyright (c) 2026 Charlotte Zee
+All rights reserved.
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
+1. GRANT OF RIGHTS
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated source code (the "Software"), to:
 
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <https://www.gnu.org/licenses/>.
+- Use the Software for personal, non-commercial purposes.
+- View and study the source code.
+- Modify the source code for personal, non-commercial purposes.
+- Create derivative works for personal, non-commercial purposes.
+- Share unmodified or modified copies of the Software free of charge,
+  provided that this license and the copyright notice remain included.
+- Submit improvements, fixes, features, or other contributions to the
+  original project.
 
- You are restricted from commercial use of this software.
- You may view, modify, and redistribute this software for personal
- and educational purposes only.
+2. NON-COMMERCIAL RESTRICTION
+
+The Software may NOT be:
+
+- Sold or offered for sale.
+- Licensed, sublicensed, or rented for a fee.
+- Included in a paid software product or commercial bundle.
+- Distributed as part of a commercial product or service.
+- Used to provide a paid service where the Software itself is a material
+  part of that service.
+- Monetized through a modified or redistributed version of the Software.
+
+No person or organization may use the Software or a derivative work for
+commercial purposes without prior written permission from the copyright
+holder.
+
+3. MODIFICATIONS
+
+You may modify the Software for personal, non-commercial purposes.
+
+If you publicly distribute a modified version free of charge, you must:
+
+- Clearly identify that the Software has been modified.
+- Preserve the original copyright notice.
+- Preserve this license.
+- Include the corresponding modified source code.
+- Not represent the modified version as an official release of ZeeVault.
+
+4. ATTRIBUTION
+
+The original copyright notice, project name, and license notice must not be
+removed from redistributed copies.
+
+5. TRADEMARKS AND BRANDING
+
+"ZeeVault", "ZenytheLabs", associated logos, artwork, names, and branding are
+not granted for use as trademarks or branding by this license.
+
+Permission to modify the source code does not grant permission to represent
+a modified version as an official ZeeVault release.
+
+6. COMMERCIAL LICENSE
+
+Commercial use may be permitted only with explicit written permission from
+the copyright holder.
+
+For commercial licensing inquiries, contact:
+
+ZenytheLabs
+https://zenythelabs.in
+
+7. NO WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHOR OR COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+OF THE SOFTWARE.
+
+8. TERMINATION
+
+Any rights granted under this license terminate automatically if the terms
+of this license are violated.
+
+Upon termination, the recipient must cease distribution and commercial use
+of the Software and any derivative works covered by this license.

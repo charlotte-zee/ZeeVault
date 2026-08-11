@@ -51,7 +51,7 @@ dotnet run
 
 ## License
 
-[GNU GPL v3](LICENSE) — Free to use, modify, and redistribute. Commercial use not allowed.
+[ZeeVault Non-Commercial Source-Available License](LICENSE) — Free for personal, non-commercial use. Commercial use not allowed.
 
 ## Author
 
