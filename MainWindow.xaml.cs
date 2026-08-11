@@ -7,12 +7,12 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using GameVault.Dialogs;
-using GameVault.Models;
-using GameVault.Services;
+using ZeeVault.Dialogs;
+using ZeeVault.Models;
+using ZeeVault.Services;
 using Wpf.Ui.Controls;
 
-namespace GameVault
+namespace ZeeVault
 {
     public partial class MainWindow : FluentWindow
     {
@@ -282,10 +282,12 @@ namespace GameVault
             ApplyFilter();
             AddFromSearchPopup.Visibility = Visibility.Collapsed;
             _selectedSearchResult = null;
+            _lastDropTime = DateTime.Now;
         }
 
         private Point _dragStartPoint;
         private bool _isDraggingCard = false;
+        private DateTime _lastDropTime = DateTime.MinValue;
 
         private void ItemCard_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -634,9 +636,153 @@ namespace GameVault
             }
         }
 
+        #region Start Menu Drag-and-Drop Support
+
+        // Known folder GUIDs → real paths
+        private static readonly Dictionary<string, string> KnownFolderGuids = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["{6D809377-6AF0-444B-8957-A3773F02200E}"] = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+            ["{7C5A40EF-A0FB-4BFC-874A-C0F2E0B9FA8E}"] = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+            ["{F38BF220-C3BE-11D1-BE5A-00C04FB92596}"] = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32"),
+            ["{D65231B0-B2F1-48AB-BA8A-520DF719829A}"] = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Common Files"),
+            ["{9274F77C-3B25-49DC-8285-496BC46B74E9}"] = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Common Files"),
+        };
+
+        private class StartMenuDropItem
+        {
+            public string Name { get; set; } = string.Empty;
+            public string TargetPath { get; set; } = string.Empty;
+            public string Category { get; set; } = "Games";
+        }
+
+        /// <summary>
+        /// Resolves partial paths that use known folder GUIDs (e.g. {6D809377-...}\LGHUB\...) to real paths.
+        /// </summary>
+        private static string ResolvePartialPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return path;
+
+            // Check if path starts with a known folder GUID
+            foreach (var kv in KnownFolderGuids)
+            {
+                if (path.StartsWith(kv.Key, StringComparison.OrdinalIgnoreCase))
+                {
+                    string remainder = path.Substring(kv.Key.Length).TrimStart('\\');
+                    string resolved = Path.Combine(kv.Value, remainder);
+                    if (File.Exists(resolved) || Directory.Exists(resolved))
+                        return resolved;
+                }
+            }
+
+            return path;
+        }
+
+        private List<StartMenuDropItem> ExtractDropItems(DragEventArgs e)
+        {
+            var items = new List<StartMenuDropItem>();
+
+            // 1. Try FileDrop (Win32 apps, shortcuts, .url files, and Store app AUMIDs)
+            try
+            {
+                if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                {
+                    var files = e.Data.GetData(DataFormats.FileDrop) as string[];
+                    if (files != null && files.Length > 0)
+                    {
+                        foreach (var f in files)
+                        {
+                            string resolved = ResolvePartialPath(f);
+
+                            if (File.Exists(resolved) || Directory.Exists(resolved))
+                            {
+                                string ext = Path.GetExtension(resolved).ToLowerInvariant();
+                                items.Add(new StartMenuDropItem
+                                {
+                                    Name = ResolveAppName(resolved),
+                                    TargetPath = resolved,
+                                    Category = (ext == ".exe" || ext == ".lnk") ? "Games" : "Files"
+                                });
+                            }
+                            else if (f.StartsWith("steam://", StringComparison.OrdinalIgnoreCase) ||
+                                     f.StartsWith("uplay://", StringComparison.OrdinalIgnoreCase) ||
+                                     f.StartsWith("com.epicgames", StringComparison.OrdinalIgnoreCase))
+                            {
+                                items.Add(new StartMenuDropItem
+                                {
+                                    Name = ResolveAppName(f),
+                                    TargetPath = f,
+                                    Category = "Games"
+                                });
+                            }
+                        }
+                        if (items.Count > 0) return items;
+                    }
+                }
+            }
+            catch { }
+
+            // 2. Text fallback
+            try
+            {
+                if (e.Data.GetDataPresent(DataFormats.Text))
+                {
+                    string? text = e.Data.GetData(DataFormats.Text) as string;
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        var results = WindowsAppSearchService.Search(text.Trim());
+                        if (results.Count > 0)
+                        {
+                            items.Add(new StartMenuDropItem
+                            {
+                                Name = results[0].Name,
+                                TargetPath = results[0].ExecutablePath,
+                                Category = results[0].SuggestedCategory
+                            });
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return items;
+        }
+
+        private string ResolveAppName(string path)
+        {
+            // 1. Try search index — gives "WhatsApp", "Antigravity", "Settings", etc.
+            try
+            {
+                var searchResults = WindowsAppSearchService.Search(Path.GetFileNameWithoutExtension(path));
+                var match = searchResults.FirstOrDefault(r =>
+                    string.Equals(r.ExecutablePath, path, StringComparison.OrdinalIgnoreCase));
+                if (match != null && !string.IsNullOrWhiteSpace(match.Name))
+                    return match.Name;
+
+                if (searchResults.Count > 0 && !string.IsNullOrWhiteSpace(searchResults[0].Name))
+                    return searchResults[0].Name;
+            }
+            catch { }
+
+            // 2. Try product version info from exe
+            try
+            {
+                string productInfo = LibraryService.GetProductVersionInfo(path);
+                if (!string.IsNullOrWhiteSpace(productInfo))
+                    return productInfo;
+            }
+            catch { }
+
+            // 3. Fallback to filename
+            return Path.GetFileNameWithoutExtension(path);
+        }
+
+        #endregion
+
         private void Window_DragEnter(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            if (e.Data.GetDataPresent(DataFormats.FileDrop) ||
+                e.Data.GetDataPresent("Shell ID List") ||
+                e.Data.GetDataPresent(DataFormats.Text))
             {
                 e.Effects = DragDropEffects.Copy;
                 DropOverlay.Visibility = Visibility.Visible;
@@ -652,28 +798,168 @@ namespace GameVault
         {
             DropOverlay.Visibility = Visibility.Collapsed;
 
+            if ((DateTime.Now - _lastDropTime).TotalMilliseconds < 500) return;
+
+            // 1. FileDrop — handles both regular files AND Store app AUMIDs
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                foreach (string filePath in files)
+                string[]? files = e.Data.GetData(DataFormats.FileDrop) as string[];
+                if (files != null)
                 {
-                    if (File.Exists(filePath) || Directory.Exists(filePath))
+                    foreach (string filePath in files)
                     {
-                        string ext = Path.GetExtension(filePath).ToLowerInvariant();
-                        string category = (ext == ".exe" || ext == ".lnk") ? "Games" : "Files";
+                        // Resolve partial paths with known folder GUIDs
+                        string resolved = ResolvePartialPath(filePath);
 
-                        var item = new VaultItem
+                        if (File.Exists(resolved) || Directory.Exists(resolved))
                         {
-                            Title = Path.GetFileNameWithoutExtension(filePath),
-                            FilePath = filePath,
-                            Category = category,
-                            DateAdded = DateTime.Now
-                        };
-                        _libraryService.AddItem(item);
+                            // Regular file — show Add confirmation popup
+                            string ext = Path.GetExtension(resolved).ToLowerInvariant();
+                            string category = (ext == ".exe" || ext == ".lnk") ? "Games" : "Files";
+                            string title = ResolveAppName(resolved);
+
+                            _selectedSearchResult = new WindowsAppSearchResult
+                            {
+                                Name = title,
+                                ExecutablePath = resolved,
+                                Source = "Start Menu",
+                                Icon = null
+                            };
+                            _selectedSearchResult.Icon = IconExtractor.GetIconForFile(resolved);
+
+                            PopupAppName.Text = title;
+                            PopupAppPath.Text = resolved;
+                            PopupAppIcon.Source = _selectedSearchResult.Icon;
+                            PopupTitleInput.Text = title;
+
+                            if (ext == ".exe" || ext == ".lnk") PopupCatGames.IsChecked = true;
+                            else PopupCatFiles.IsChecked = true;
+
+                            AddFromSearchPopup.Visibility = Visibility.Visible;
+                            return;
+                        }
+                        else if (resolved.StartsWith("steam://", StringComparison.OrdinalIgnoreCase) ||
+                                 resolved.StartsWith("uplay://", StringComparison.OrdinalIgnoreCase) ||
+                                 resolved.StartsWith("com.epicgames", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Protocol URL — show Add confirmation popup
+                            string title = ResolveAppName(resolved);
+
+                            _selectedSearchResult = new WindowsAppSearchResult
+                            {
+                                Name = title,
+                                ExecutablePath = resolved,
+                                Source = "Start Menu",
+                                Icon = null
+                            };
+                            _selectedSearchResult.Icon = IconExtractor.GetIconForFile(resolved);
+
+                            PopupAppName.Text = title;
+                            PopupAppPath.Text = resolved;
+                            PopupAppIcon.Source = _selectedSearchResult.Icon;
+                            PopupTitleInput.Text = title;
+                            PopupCatGames.IsChecked = true;
+
+                            AddFromSearchPopup.Visibility = Visibility.Visible;
+                            return;
+                        }
+                        else
+                        {
+                            // Likely a Store app AUMID — show Add confirmation popup
+                            string name = ResolveAppNameFromAumid(filePath);
+                            _selectedSearchResult = new WindowsAppSearchResult
+                            {
+                                Name = name,
+                                ExecutablePath = filePath,
+                                Source = "Start Menu",
+                                Icon = null
+                            };
+                            _selectedSearchResult.Icon = IconExtractor.GetIconForFile(filePath);
+
+                            PopupAppName.Text = name;
+                            PopupAppPath.Text = filePath;
+                            PopupAppIcon.Source = _selectedSearchResult.Icon;
+                            PopupTitleInput.Text = name;
+                            PopupCatTools.IsChecked = true;
+
+                            AddFromSearchPopup.Visibility = Visibility.Visible;
+                            return;
+                        }
                     }
+                    ApplyFilter();
+                }
+                return;
+            }
+
+            // 2. Shell IDList Array — fallback
+            var dropItems = ExtractDropItems(e);
+            if (dropItems.Count > 0)
+            {
+                foreach (var dropItem in dropItems)
+                {
+                    if (_libraryService.Items.Any(i =>
+                        string.Equals(i.FilePath, dropItem.TargetPath, StringComparison.OrdinalIgnoreCase)))
+                        continue;
+
+                    _libraryService.AddItem(new VaultItem
+                    {
+                        Title = dropItem.Name,
+                        FilePath = dropItem.TargetPath,
+                        Category = dropItem.Category,
+                        DateAdded = DateTime.Now
+                    });
                 }
                 ApplyFilter();
+                _lastDropTime = DateTime.Now;
+                return;
             }
+
+            // 3. Unsupported
+            System.Windows.MessageBox.Show(
+                "Could not add this item. Please drag the file directly or use the + Add button.",
+                "ZeeVault", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+        }
+
+        /// <summary>
+        /// Resolves a friendly name for a Store app AUMID by searching the app index.
+        /// </summary>
+        private string ResolveAppNameFromAumid(string aumidOrPath)
+        {
+            // Extract a searchable name from the AUMID
+            // e.g. "5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App" -> search "WhatsAppDesktop" or "WhatsApp"
+            try
+            {
+                // Try the full search index — match by path
+                var results = WindowsAppSearchService.Search(Path.GetFileNameWithoutExtension(aumidOrPath));
+                if (results.Count > 0)
+                    return results[0].Name;
+
+                // Try searching with parts of the AUMID
+                string searchName = aumidOrPath;
+                int dotIdx = searchName.IndexOf('.');
+                if (dotIdx > 0) searchName = searchName.Substring(dotIdx + 1);
+                int underscoreIdx = searchName.IndexOf('_');
+                if (underscoreIdx > 0) searchName = searchName.Substring(0, underscoreIdx);
+
+                if (searchName.Length > 2)
+                {
+                    results = WindowsAppSearchService.Search(searchName);
+                    if (results.Count > 0)
+                        return results[0].Name;
+                }
+            }
+            catch { }
+
+            // Fallback: clean up the AUMID for display
+            string clean = aumidOrPath;
+            int bangIdx = clean.IndexOf('!');
+            if (bangIdx > 0) clean = clean.Substring(0, bangIdx);
+            int udx = clean.IndexOf('_');
+            if (udx > 0) clean = clean.Substring(0, udx);
+            int dotIdx2 = clean.IndexOf('.');
+            if (dotIdx2 > 0) clean = clean.Substring(dotIdx2 + 1);
+
+            return clean;
         }
 
         private void CloseBtn_Click(object sender, RoutedEventArgs e)

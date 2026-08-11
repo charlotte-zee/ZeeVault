@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 
-namespace GameVault.Models
+namespace ZeeVault.Models
 {
     public class VaultItem : INotifyPropertyChanged
     {

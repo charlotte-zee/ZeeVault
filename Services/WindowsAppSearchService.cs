@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Media;
 
-namespace GameVault.Services
+namespace ZeeVault.Services
 {
     public class WindowsAppSearchResult : System.ComponentModel.INotifyPropertyChanged
     {

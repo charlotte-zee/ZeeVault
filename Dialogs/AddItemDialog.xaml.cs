@@ -3,10 +3,10 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
-using GameVault.Models;
-using GameVault.Services;
+using ZeeVault.Models;
+using ZeeVault.Services;
 
-namespace GameVault.Dialogs
+namespace ZeeVault.Dialogs
 {
     public partial class AddItemDialog : Window
     {
@@ -55,7 +55,7 @@ namespace GameVault.Dialogs
         {
             if (string.IsNullOrWhiteSpace(TxtFilePath.Text) || string.IsNullOrWhiteSpace(TxtTitle.Text))
             {
-                MessageBox.Show("Please specify both a file path and a title.", "GameVault", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please specify both a file path and a title.", "ZeeVault", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 

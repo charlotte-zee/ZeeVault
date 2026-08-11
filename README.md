@@ -10,9 +10,11 @@ A sleek, modern app launcher and vault for Windows. Organize your games, tools, 
 - **Smart Search** — Type to search your vault or discover installed Windows apps instantly
 - **Auto Icon Detection** — Automatically picks up app icons and names from your system
 - **Categories** — Organize items into Games, Tools, and Files
-- **Drag & Drop** — Drop any file or shortcut to add it to your vault
+- **Drag & Drop** — Drop any file, shortcut, or Start Menu app to add it to your vault
+- **Start Menu Drag** — Drag apps directly from the Windows Start Menu into ZeeVault
 - **Manual Add** — Browse for any file with a clean, polished dialog
 - **Quick Launch** — Click any item to launch it directly
+- **Single Instance** — Only one ZeeVault window at a time
 - **Custom Titlebar** — Animated minimize, maximize, and close buttons
 - **Dark Theme** — Beautiful dark UI with glassmorphism effects
 - **Responsive Grid** — Cards automatically adjust to window size
@@ -21,8 +23,11 @@ A sleek, modern app launcher and vault for Windows. Organize your games, tools, 
 ## Download
 
 1. Go to [Releases](../../releases)
-2. Download the latest `ZeeVault.zip`
-3. Extract and run `GameVault.exe`
+2. Download the latest `ZeeVault-Setup.exe`
+3. Run the installer — installs to `C:\Program Files\ZeeVault`
+4. ZeeVault will appear in your Start Menu and on your Desktop
+
+To uninstall, go to **Control Panel > Programs and Features** or use the Start Menu shortcut.
 
 ## Build from Source
 
@@ -42,11 +47,13 @@ dotnet run
 - WPF UI (Fluent Design)
 - System.Drawing for icon extraction
 - P/Invoke for shell icon APIs
+- NSIS for installer packaging
 
 ## How It Works
 
 - **Smart Search** scans Start Menu shortcuts, Desktop shortcuts, Registry installed programs, and Program Files to find any app on your system
 - **Icon Extraction** uses Windows Shell API (`SHGetFileInfo`) and `Icon.ExtractAssociatedIcon` to pull real app icons
+- **Start Menu Drag-and-Drop** resolves Windows Shell IDList Array and FileDrop AUMIDs to add Store and Win32 apps
 - **Category System** lets you tag anything as Games, Tools, or Files with color-coded badges
 
 ## License

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 
-namespace GameVault.Services
+namespace ZeeVault.Services
 {
     public static class GlassHelper
     {

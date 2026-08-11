@@ -6,9 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using GameVault.Models;
+using ZeeVault.Models;
 
-namespace GameVault.Services
+namespace ZeeVault.Services
 {
     public class LibraryService
     {

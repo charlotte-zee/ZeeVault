@@ -8,7 +8,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace GameVault.Services
+namespace ZeeVault.Services
 {
     public static class IconExtractor
     {
@@ -125,6 +125,17 @@ namespace GameVault.Services
 
             ImageSource? result = null;
 
+            // 0b. Directory — extract folder icon via SHGetFileInfo
+            if (Directory.Exists(cleanPath))
+            {
+                result = ExtractFolderIcon(cleanPath);
+                if (result != null)
+                {
+                    IconCache[cleanPath] = result;
+                    return result;
+                }
+            }
+
             // 1. If it's a direct .ico file
             if ((cleanPath.EndsWith(".ico", StringComparison.OrdinalIgnoreCase) || cleanPath.EndsWith(".png", StringComparison.OrdinalIgnoreCase)) && File.Exists(cleanPath))
             {
@@ -144,30 +155,27 @@ namespace GameVault.Services
                 }
             }
 
-            // 2. Try Shell PIDL Extraction (Primary method for shell:AppsFolder\..., Store Apps, Steam URLs, Win32 apps & shortcuts)
-            if (result == null)
-            {
-                result = ExtractShellIconViaPidl(cleanPath);
-            }
-
-            // 3. Try IShellItemImageFactory
-            if (result == null)
-            {
-                result = ExtractShellItemImage(cleanPath);
-            }
-
-            // 4. Fallback: Extract associated icon for standard filesystem files (.exe, .lnk)
+            // 2. For regular files — try ExtractAssociatedIcon FIRST (gives proper .txt/.doc/.zip icons)
             if (result == null && File.Exists(cleanPath))
             {
                 try
                 {
                     using var sysIcon = Icon.ExtractAssociatedIcon(cleanPath);
-                    if (sysIcon != null)
-                    {
-                        result = ToImageSource(sysIcon);
-                    }
+                    if (sysIcon != null) result = ToImageSource(sysIcon);
                 }
                 catch { }
+            }
+
+            // 3. Try Shell PIDL Extraction (shell:AppsFolder\..., Store Apps, Steam URLs)
+            if (result == null)
+            {
+                result = ExtractShellIconViaPidl(cleanPath);
+            }
+
+            // 4. Try IShellItemImageFactory
+            if (result == null)
+            {
+                result = ExtractShellItemImage(cleanPath);
             }
 
             // 5. Fallback: Standard SHGetFileInfo
@@ -255,6 +263,31 @@ namespace GameVault.Services
                 if (useFileAttributes) flags |= SHGFI_USEFILEATTRIBUTES;
 
                 IntPtr hImg = SHGetFileInfo(path, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), flags);
+                if (hImg != IntPtr.Zero && shinfo.hIcon != IntPtr.Zero)
+                {
+                    try
+                    {
+                        using var icon = Icon.FromHandle(shinfo.hIcon);
+                        return ToImageSource(icon);
+                    }
+                    finally
+                    {
+                        DestroyIcon(shinfo.hIcon);
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        private static ImageSource? ExtractFolderIcon(string folderPath)
+        {
+            try
+            {
+                var shinfo = new SHFILEINFO();
+                // FILE_ATTRIBUTE_DIRECTORY = 0x10
+                IntPtr hImg = SHGetFileInfo(folderPath, 0x10, ref shinfo, (uint)Marshal.SizeOf(shinfo),
+                    SHGFI_ICON | SHGFI_LARGEICON | SHGFI_USEFILEATTRIBUTES);
                 if (hImg != IntPtr.Zero && shinfo.hIcon != IntPtr.Zero)
                 {
                     try
