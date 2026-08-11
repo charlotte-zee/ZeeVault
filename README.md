@@ -2,7 +2,8 @@
 
 A sleek, modern app launcher and vault for Windows. Organize your games, tools, and files in one beautiful interface.
 
-![ZeeVault](screenshots/preview.png)
+![ZeeVault](<img width="964" height="661" alt="image" src="https://github.com/user-attachments/assets/0cc3b215-5656-4896-ac89-cc56404a7be3" />
+)
 
 ## Features
 
@@ -16,11 +17,6 @@ A sleek, modern app launcher and vault for Windows. Organize your games, tools, 
 - **Dark Theme** — Beautiful dark UI with glassmorphism effects
 - **Responsive Grid** — Cards automatically adjust to window size
 
-## Screenshots
-
-![All Apps](screenshots/all-apps.png)
-
-![Smart Search](screenshots/smart-search.png)
 
 ## Download
 
