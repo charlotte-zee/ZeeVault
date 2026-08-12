@@ -58,6 +58,7 @@ Section "ZeeVault (required)" SecMain
     File /r "D:\Publish\ZeeVault\publish\*.exe"
     File /r "D:\Publish\ZeeVault\publish\*.dll"
     File /r "D:\Publish\ZeeVault\publish\*.json"
+    File /r "D:\Publish\ZeeVault\publish\*.txt"
 
     ; ── Localization folders ─────────────────────────────────────
     SetOutPath "$INSTDIR\cs"

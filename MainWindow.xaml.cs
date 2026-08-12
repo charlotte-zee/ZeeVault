@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Net.Http;
 using ZeeVault.Dialogs;
 using ZeeVault.Models;
 using ZeeVault.Services;
@@ -57,6 +58,9 @@ namespace ZeeVault
 
             // Now load library icons — all protocol icon mappings are ready in UrlIconCache
             await _libraryService.LoadIconsAsync(Dispatcher);
+
+            // Auto-check for updates on startup
+            _ = CheckForUpdateOnStartup();
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -1129,5 +1133,164 @@ namespace ZeeVault
         {
             Process.Start(new ProcessStartInfo("https://github.com/charlotte-zee/ZeeVault") { UseShellExecute = true });
         }
+
+        #region Auto-Update System
+
+        private string _latestVersion = string.Empty;
+        private string _latestDownloadUrl = string.Empty;
+        private string _downloadedInstallerPath = string.Empty;
+        private System.Net.Http.HttpClient? _updateHttpClient;
+        private CancellationTokenSource? _downloadCts;
+
+        private async Task CheckForUpdateOnStartup()
+        {
+            try
+            {
+                await Task.Delay(2000); // Small delay so UI loads first
+
+                _updateHttpClient = new System.Net.Http.HttpClient();
+                _updateHttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ZeeVault-Updater");
+                var response = await _updateHttpClient.GetStringAsync("https://api.github.com/repos/charlotte-zee/ZeeVault/releases/latest");
+
+                int tagIdx = response.IndexOf("\"tag_name\"");
+                if (tagIdx < 0) return;
+                int colonIdx = response.IndexOf(':', tagIdx);
+                int quoteStart = response.IndexOf('"', colonIdx + 1);
+                int quoteEnd = response.IndexOf('"', quoteStart + 1);
+                string latestTag = response.Substring(quoteStart + 1, quoteEnd - quoteStart - 1).TrimStart('v');
+
+                string currentVersion = GetCurrentVersion();
+                if (latestTag == currentVersion) return;
+
+                // New version found — extract download URL
+                _latestVersion = latestTag;
+                int assetsIdx = response.IndexOf("\"browser_download_url\"");
+                if (assetsIdx >= 0)
+                {
+                    int aColon = response.IndexOf(':', assetsIdx);
+                    int aStart = response.IndexOf('"', aColon + 1);
+                    int aEnd = response.IndexOf('"', aStart + 1);
+                    _latestDownloadUrl = response.Substring(aStart + 1, aEnd - aStart - 1);
+                }
+
+                Dispatcher.Invoke(() =>
+                {
+                    UpdateBannerText.Text = $"Update available: v{latestTag} (you have v{currentVersion})";
+                    UpdateBanner.Visibility = Visibility.Visible;
+                });
+            }
+            catch
+            {
+                // Silently fail — user can still check manually from settings
+            }
+        }
+
+        private async void UpdateDownload_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(_latestDownloadUrl)) return;
+
+            UpdateBanner.Visibility = Visibility.Collapsed;
+            UpdateProgressBorder.Visibility = Visibility.Visible;
+            UpdateProgressText.Text = "Downloading update...";
+
+            try
+            {
+                _downloadCts = new CancellationTokenSource();
+                string tempDir = Path.Combine(Path.GetTempPath(), "ZeeVault_Update");
+                Directory.CreateDirectory(tempDir);
+                _downloadedInstallerPath = Path.Combine(tempDir, "ZeeVault-Setup.exe");
+
+                using var response = await _updateHttpClient!.GetAsync(_latestDownloadUrl, HttpCompletionOption.ResponseHeadersRead, _downloadCts.Token);
+                response.EnsureSuccessStatusCode();
+
+                var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+                var totalRead = 0L;
+                var buffer = new byte[8192];
+
+                using var contentStream = await response.Content.ReadAsStreamAsync(_downloadCts.Token);
+                using var fileStream = new FileStream(_downloadedInstallerPath, FileMode.Create, FileAccess.Write, FileShare.None);
+
+                int bytesRead;
+                while ((bytesRead = await contentStream.ReadAsync(buffer, _downloadCts.Token)) > 0)
+                {
+                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), _downloadCts.Token);
+                    totalRead += bytesRead;
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (totalBytes > 0)
+                        {
+                            int percent = (int)(totalRead * 100 / totalBytes);
+                            UpdateProgressText.Text = $"Downloading update... {percent}%";
+                        }
+                        else
+                        {
+                            UpdateProgressText.Text = $"Downloading update... {totalRead / 1024:N0} KB";
+                        }
+                    });
+                }
+
+                Dispatcher.Invoke(() =>
+                {
+                    UpdateProgressBorder.Visibility = Visibility.Collapsed;
+                    InstallBanner.Visibility = Visibility.Visible;
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    UpdateProgressBorder.Visibility = Visibility.Collapsed;
+                });
+            }
+            catch (Exception)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    UpdateProgressBorder.Visibility = Visibility.Collapsed;
+                    UpdateBannerText.Text = "Download failed. Try again.";
+                    UpdateBanner.Visibility = Visibility.Visible;
+                });
+            }
+        }
+
+        private void UpdateCancel_Click(object sender, RoutedEventArgs e)
+        {
+            _downloadCts?.Cancel();
+        }
+
+        private void UpdateInstall_Click(object sender, RoutedEventArgs e)
+        {
+            if (!File.Exists(_downloadedInstallerPath)) return;
+
+            try
+            {
+                // Run installer with UAC elevation
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = _downloadedInstallerPath,
+                    Verb = "runas",
+                    UseShellExecute = true
+                });
+
+                // Close ZeeVault so installer can overwrite files
+                Dispatcher.Invoke(() =>
+                {
+                    Application.Current.Shutdown();
+                });
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                // User clicked No on UAC prompt — do nothing
+            }
+        }
+
+        private void UpdateDismiss_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateBanner.Visibility = Visibility.Collapsed;
+            InstallBanner.Visibility = Visibility.Collapsed;
+        }
+
+        #endregion
     }
 }

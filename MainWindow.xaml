@@ -217,6 +217,7 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -274,7 +275,85 @@
                 </ui:TitleBar.Header>
             </ui:TitleBar>
 
-            <Grid Grid.Row="1" Margin="10,4,10,10">
+            <!-- Update Available Banner -->
+            <Border x:Name="UpdateBanner" Grid.Row="1" Visibility="Collapsed" Background="#256366F1" Padding="12,6">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="&#x2191;" FontSize="12" Foreground="#A5B4FC" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock x:Name="UpdateBannerText" Text="Update available" Foreground="#E2E8F0" FontSize="11.5" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="UpdateDownloadBtn" Content="Download" Click="UpdateDownload_Click"
+                                Background="#6366F1" Foreground="White" FontSize="10.5" FontWeight="SemiBold"
+                                BorderThickness="0" Cursor="Hand" Padding="10,3" Margin="0,0,6,0">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                        <Button x:Name="UpdateDismissBtn" Content="Dismiss" Click="UpdateDismiss_Click"
+                                Background="Transparent" Foreground="#A5B4FC" FontSize="10.5"
+                                BorderThickness="1" BorderBrush="#406366F1" Cursor="Hand" Padding="10,3">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Download Progress Bar -->
+            <Border x:Name="UpdateProgressBorder" Grid.Row="1" Visibility="Collapsed" Background="#256366F1" Padding="12,6">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock x:Name="UpdateProgressText" Text="Downloading update..." Foreground="#E2E8F0" FontSize="11.5" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button x:Name="UpdateCancelBtn" Content="Cancel" Click="UpdateCancel_Click"
+                            HorizontalAlignment="Right" Background="Transparent" Foreground="#A5B4FC" FontSize="10.5"
+                            BorderThickness="1" BorderBrush="#406366F1" Cursor="Hand" Padding="10,3">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Install Ready Banner -->
+            <Border x:Name="InstallBanner" Grid.Row="1" Visibility="Collapsed" Background="#206366F1" Padding="12,6">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="&#x2714;" FontSize="12" Foreground="#4ADE80" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock Text="Update downloaded and ready to install" Foreground="#E2E8F0" FontSize="11.5" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="UpdateInstallBtn" Content="Install &amp; Restart" Click="UpdateInstall_Click"
+                                Background="#22C55E" Foreground="White" FontSize="10.5" FontWeight="SemiBold"
+                                BorderThickness="0" Cursor="Hand" Padding="10,3" Margin="0,0,6,0">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                        <Button x:Name="UpdateLaterBtn" Content="Later" Click="UpdateDismiss_Click"
+                                Background="Transparent" Foreground="#A5B4FC" FontSize="10.5"
+                                BorderThickness="1" BorderBrush="#406366F1" Cursor="Hand" Padding="10,3">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="2" Margin="10,4,10,10">
                 <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
                               CanContentScroll="False">
                     <ItemsControl x:Name="ItemsGrid" VerticalAlignment="Top">
