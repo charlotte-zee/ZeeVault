@@ -28,6 +28,8 @@ VIAddVersionKey "LegalCopyright" "Copyright (c) 2026 Charlotte Zee / ZenytheLabs
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
 !define MUI_UNWELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\ZeeVault.exe"
+!define MUI_FINISHPAGE_RUN_TEXT "Launch ZeeVault"
 
 ; ── Pages ────────────────────────────────────────────────────────
 !insertmacro MUI_PAGE_WELCOME
