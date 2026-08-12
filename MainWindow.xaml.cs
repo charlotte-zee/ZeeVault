@@ -27,6 +27,7 @@ namespace ZeeVault
             UpdateGridColumns();
             Loaded += MainWindow_Loaded;
             LocationChanged += MainWindow_LocationChanged;
+            PreviewMouseDown += MainWindow_PreviewMouseDown;
         }
 
         private void MainWindow_LocationChanged(object? sender, EventArgs e)
@@ -36,6 +37,12 @@ namespace ZeeVault
                 var offset = SearchDropdown.HorizontalOffset;
                 SearchDropdown.HorizontalOffset = offset + 0.0001;
                 SearchDropdown.HorizontalOffset = offset;
+            }
+
+            // Close settings popup on move so it doesn't get left behind
+            if (SettingsPopup != null && SettingsPopup.IsOpen)
+            {
+                SettingsPopup.IsOpen = false;
             }
         }
 
@@ -800,6 +807,9 @@ namespace ZeeVault
 
             if ((DateTime.Now - _lastDropTime).TotalMilliseconds < 500) return;
 
+            // Ignore internal card reorder drops
+            if (e.Data.GetDataPresent("VaultItem")) return;
+
             // 1. FileDrop — handles both regular files AND Store app AUMIDs
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
@@ -981,6 +991,143 @@ namespace ZeeVault
 
         private void SettingsBtn_Click(object sender, RoutedEventArgs e)
         {
+            SettingsPopup.IsOpen = !SettingsPopup.IsOpen;
+        }
+
+        private void MainWindow_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (SettingsPopup != null && SettingsPopup.IsOpen)
+            {
+                var pos = e.GetPosition(this);
+                var popupBounds = SettingsPopupBorder?.TranslatePoint(new Point(0, 0), this);
+                var btnBounds = SettingsBtn?.TranslatePoint(new Point(0, 0), this);
+
+                bool clickedInsidePopup = popupBounds.HasValue &&
+                    pos.X >= popupBounds.Value.X && pos.X <= popupBounds.Value.X + (SettingsPopupBorder?.ActualWidth ?? 0) &&
+                    pos.Y >= popupBounds.Value.Y && pos.Y <= popupBounds.Value.Y + (SettingsPopupBorder?.ActualHeight ?? 0);
+
+                bool clickedOnButton = btnBounds.HasValue &&
+                    pos.X >= btnBounds.Value.X && pos.X <= btnBounds.Value.X + (SettingsBtn?.ActualWidth ?? 0) &&
+                    pos.Y >= btnBounds.Value.Y && pos.Y <= btnBounds.Value.Y + (SettingsBtn?.ActualHeight ?? 0);
+
+                if (!clickedInsidePopup && !clickedOnButton)
+                {
+                    SettingsPopup.IsOpen = false;
+                }
+            }
+        }
+
+        private void SettingsPopup_Open(object sender, EventArgs e)
+        {
+            var scale = SettingsPopupBorder.RenderTransform as ScaleTransform;
+            if (scale == null) return;
+            scale.ScaleY = 0;
+            var anim = new System.Windows.Media.Animation.DoubleAnimation(1, TimeSpan.FromMilliseconds(150))
+            {
+                EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut }
+            };
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+        }
+
+        private void SettingsPopup_Closed(object sender, EventArgs e)
+        {
+            // Reset back to menu items when popup closes
+            if (SettingsMenuItems != null && AboutInlinePanel != null)
+            {
+                SettingsMenuItems.Visibility = Visibility.Visible;
+                AboutInlinePanel.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private string GetCurrentVersion()
+        {
+            try
+            {
+                string versionPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "version.txt");
+                if (File.Exists(versionPath))
+                    return File.ReadAllText(versionPath).Trim();
+            }
+            catch { }
+            return "1.0.0";
+        }
+
+        private async void CheckUpdate_Click(object sender, MouseButtonEventArgs e)
+        {
+            UpdateStatusText.Text = "Checking for updates...";
+            SettingsPopup.IsOpen = false;
+
+            try
+            {
+                string currentVersion = GetCurrentVersion();
+                using var http = new System.Net.Http.HttpClient();
+                http.DefaultRequestHeaders.UserAgent.ParseAdd("ZeeVault-Updater");
+                var response = await http.GetStringAsync("https://api.github.com/repos/charlotte-zee/ZeeVault/releases/latest");
+
+                // Simple JSON parse for tag_name
+                int tagIdx = response.IndexOf("\"tag_name\"");
+                if (tagIdx < 0) { UpdateStatusText.Text = "Could not check for updates."; return; }
+                int colonIdx = response.IndexOf(':', tagIdx);
+                int quoteStart = response.IndexOf('"', colonIdx + 1);
+                int quoteEnd = response.IndexOf('"', quoteStart + 1);
+                string latestTag = response.Substring(quoteStart + 1, quoteEnd - quoteStart - 1).TrimStart('v');
+
+                if (latestTag == currentVersion)
+                {
+                    UpdateStatusText.Text = "You're running the latest version.";
+                    System.Windows.MessageBox.Show(
+                        $"You're already running the latest version (v{currentVersion}).",
+                        "ZeeVault", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+                else
+                {
+                    var result = System.Windows.MessageBox.Show(
+                        $"A new version (v{latestTag}) is available!\n\nYou're running v{currentVersion}.\n\nDownload now?",
+                        "Update Available", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Information);
+
+                    if (result == System.Windows.MessageBoxResult.Yes)
+                    {
+                        // Find the setup exe download URL
+                        int assetsIdx = response.IndexOf("\"browser_download_url\"");
+                        if (assetsIdx >= 0)
+                        {
+                            int aColon = response.IndexOf(':', assetsIdx);
+                            int aStart = response.IndexOf('"', aColon + 1);
+                            int aEnd = response.IndexOf('"', aStart + 1);
+                            string downloadUrl = response.Substring(aStart + 1, aEnd - aStart - 1);
+                            Process.Start(new ProcessStartInfo(downloadUrl) { UseShellExecute = true });
+                        }
+                        else
+                        {
+                            Process.Start(new ProcessStartInfo($"https://github.com/charlotte-zee/ZeeVault/releases/tag/v{latestTag}") { UseShellExecute = true });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateStatusText.Text = "Could not check for updates.";
+                System.Windows.MessageBox.Show(
+                    $"Could not check for updates:\n{ex.Message}",
+                    "ZeeVault", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
+        }
+
+        private void About_Click(object sender, MouseButtonEventArgs e)
+        {
+            SettingsMenuItems.Visibility = Visibility.Collapsed;
+            AboutInlinePanel.Visibility = Visibility.Visible;
+            AboutInlineVersionText.Text = $"Version {GetCurrentVersion()}";
+        }
+
+        private void AboutBack_Click(object sender, RoutedEventArgs e)
+        {
+            SettingsMenuItems.Visibility = Visibility.Visible;
+            AboutInlinePanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void AboutGitHub_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo("https://github.com/charlotte-zee/ZeeVault") { UseShellExecute = true });
         }
     }
 }

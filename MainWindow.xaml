@@ -33,6 +33,7 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="BtnBorder"
                                 Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent" BorderThickness="0"
                                 CornerRadius="6"
                                 RenderTransformOrigin="0.5,0.5">
                             <Border.RenderTransform>
@@ -92,6 +93,7 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="CloseBorder"
                                 Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent" BorderThickness="0"
                                 CornerRadius="6"
                                 RenderTransformOrigin="0.5,0.5">
                             <Border.RenderTransform>
@@ -211,7 +213,7 @@
 
     </ui:FluentWindow.Resources>
 
-    <Border x:Name="MainBorder" Background="#880A090F" BorderBrush="#14FFFFFF" BorderThickness="1" CornerRadius="10" ClipToBounds="True">
+    <Border x:Name="MainBorder" Background="#880A090F" BorderBrush="Transparent" BorderThickness="0" CornerRadius="10" ClipToBounds="True">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -515,6 +517,188 @@
                                 </Border>
                             </Grid>
                         </Border>
+                    </Border>
+                </Popup>
+
+                <!-- Settings Popup (dropdown below gear button) -->
+                <Popup x:Name="SettingsPopup" PlacementTarget="{x:Reference SettingsBtn}"
+                       Placement="Bottom" HorizontalOffset="-200" AllowsTransparency="True" PopupAnimation="None"
+                       StaysOpen="True" Opened="SettingsPopup_Open" Closed="SettingsPopup_Closed">
+                    <Border x:Name="SettingsPopupBorder" Background="#1A1830" BorderBrush="#2A2740" BorderThickness="1" CornerRadius="8"
+                            Padding="4" Margin="0,4" MinWidth="260"
+                            RenderTransformOrigin="1,0">
+                        <Border.RenderTransform>
+                            <ScaleTransform ScaleX="1" ScaleY="0"/>
+                        </Border.RenderTransform>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Menu Items -->
+                            <StackPanel x:Name="SettingsMenuItems" Grid.Row="0">
+                                <!-- Check for Updates -->
+                                <Border Cursor="Hand" MouseLeftButtonDown="CheckUpdate_Click"
+                                        Padding="12,10" CornerRadius="6" Background="Transparent">
+                                    <Border.RenderTransform>
+                                        <TranslateTransform X="0"/>
+                                    </Border.RenderTransform>
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#256366F1"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Border.Triggers>
+                                        <EventTrigger RoutedEvent="Border.MouseEnter">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                    To="#256366F1" Duration="0:0:0.15"/>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                                     To="2" Duration="0:0:0.12"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                        <EventTrigger RoutedEvent="Border.MouseLeave">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                    To="Transparent" Duration="0:0:0.2"/>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                                     To="0" Duration="0:0:0.15"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Border.Triggers>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="&#x1F504;" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Check for Updates" Foreground="#E2E8F0" FontSize="12.5"/>
+                                            <TextBlock x:Name="UpdateStatusText" Text="You're running the latest version" Foreground="#5B7A9A" FontSize="10" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2" Text="&#x276F;" Foreground="#5B7A9A" FontSize="11" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Separator -->
+                                <Border Height="1" Background="#2A2740" Margin="8,2"/>
+
+                                <!-- About -->
+                                <Border Cursor="Hand" MouseLeftButtonDown="About_Click"
+                                        Padding="12,10" CornerRadius="6" Background="Transparent">
+                                    <Border.RenderTransform>
+                                        <TranslateTransform X="0"/>
+                                    </Border.RenderTransform>
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#256366F1"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Border.Triggers>
+                                        <EventTrigger RoutedEvent="Border.MouseEnter">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                    To="#256366F1" Duration="0:0:0.15"/>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                                     To="2" Duration="0:0:0.12"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                        <EventTrigger RoutedEvent="Border.MouseLeave">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                    To="Transparent" Duration="0:0:0.2"/>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                                     To="0" Duration="0:0:0.15"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Border.Triggers>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="&#x2139;" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <TextBlock Grid.Column="1" Text="About ZeeVault" Foreground="#E2E8F0" FontSize="12.5" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="&#x276F;" Foreground="#5B7A9A" FontSize="11" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Inline About Panel (replaces menu items when About is clicked) -->
+                            <StackPanel x:Name="AboutInlinePanel" Grid.Row="1" Visibility="Collapsed">
+                                <Border Height="1" Background="#2A2740" Margin="8,4"/>
+                                <StackPanel Margin="8,4">
+                                    <TextBlock Text="ZeeVault" FontSize="15" FontWeight="Bold" Foreground="#E2E8F0" Margin="4,0,0,6"/>
+                                    <Border Background="#206366F1" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" Margin="4,0,0,10">
+                                        <TextBlock x:Name="AboutInlineVersionText" Text="Version 1.0.0" Foreground="#A5B4FC" FontSize="9.5" FontWeight="SemiBold"/>
+                                    </Border>
+                                    <Grid Margin="4,0,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Author" Foreground="#5B7A9A" FontSize="10" Margin="0,0,0,5"/>
+                                        <TextBlock Grid.Column="1" Text="Charlotte Zee" Foreground="#CBD5E1" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                    </Grid>
+                                    <Grid Margin="4,0,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="License" Foreground="#5B7A9A" FontSize="10" Margin="0,0,0,5"/>
+                                        <TextBlock Grid.Column="1" Text="Personal Use &amp; Modification" Foreground="#CBD5E1" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                    </Grid>
+                                    <Grid Margin="4,0,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Framework" Foreground="#5B7A9A" FontSize="10" Margin="0,0,0,8"/>
+                                        <TextBlock Grid.Column="1" Text=".NET 10 / WPF" Foreground="#CBD5E1" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    </Grid>
+                                    <Border Height="1" Background="#2A2740" Margin="0,0,0,8"/>
+                                    <Button Content="&#x1F517;  View on GitHub" Click="AboutGitHub_Click"
+                                            Background="#6366F1" Foreground="White" FontWeight="SemiBold" FontSize="10"
+                                            BorderThickness="0" Cursor="Hand" Padding="10,5" HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Center" Margin="0,0,0,4">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="5"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
+                                    <Button x:Name="AboutBackBtn" Content="&#x25C0;  Back" Click="AboutBack_Click"
+                                            Background="Transparent" Foreground="#5B7A9A" FontWeight="SemiBold" FontSize="10"
+                                            BorderThickness="1" BorderBrush="#2A2740" Cursor="Hand" Padding="10,5"
+                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="5"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Border>
                 </Popup>
 
