@@ -32,6 +32,7 @@ namespace ZeeVault
             LocationChanged += MainWindow_LocationChanged;
             PreviewMouseDown += MainWindow_PreviewMouseDown;
             StateChanged += MainWindow_StateChanged;
+            Deactivated += MainWindow_Deactivated;
         }
 
         private void MainWindow_LocationChanged(object? sender, EventArgs e)
@@ -116,6 +117,15 @@ namespace ZeeVault
         private void MainWindow_StateChanged(object? sender, EventArgs e)
         {
             UpdateGridColumns();
+        }
+
+        private void MainWindow_Deactivated(object? sender, EventArgs e)
+        {
+            // Close settings popup when app loses focus
+            if (SettingsPopup != null && SettingsPopup.IsOpen)
+            {
+                SettingsPopup.IsOpen = false;
+            }
         }
 
         private void UpdateGridColumns()
@@ -1185,6 +1195,7 @@ namespace ZeeVault
 
         private void AboutGitHub_Click(object sender, RoutedEventArgs e)
         {
+            SettingsPopup.IsOpen = false;
             Process.Start(new ProcessStartInfo("https://github.com/charlotte-zee/ZeeVault") { UseShellExecute = true });
         }
 
