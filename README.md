@@ -14,10 +14,13 @@ A sleek, modern app launcher and vault for Windows. Organize your games, tools, 
 - **Start Menu Drag** — Drag apps directly from the Windows Start Menu into ZeeVault
 - **Manual Add** — Browse for any file with a clean, polished dialog
 - **Quick Launch** — Click any item to launch it directly
+- **Layout Styles** — Switch between Clean (minimal icon + title) and Cards (full details with category, extension, border) layouts via Settings
+- **Auto-Update** — Automatically checks for new versions on startup, with in-app download and install
+- **Settings Menu** — Access update checks, layout switching, and About info from the gear icon
 - **Single Instance** — Only one ZeeVault window at a time
 - **Custom Titlebar** — Animated minimize, maximize, and close buttons
 - **Dark Theme** — Beautiful dark UI with glassmorphism effects
-- **Responsive Grid** — Cards automatically adjust to window size
+- **Responsive Grid** — Cards automatically adjust columns based on screen size
 
 
 ## Download
