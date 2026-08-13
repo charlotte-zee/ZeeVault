@@ -5,13 +5,14 @@
         xmlns:models="clr-namespace:ZeeVault.Models"
         xmlns:services="clr-namespace:ZeeVault.Services"
         Title="ZeeVault" Height="660" Width="960"
+        MinHeight="660" MinWidth="960"
         Icon="app.ico"
         WindowStartupLocation="CenterScreen"
         WindowBackdropType="Acrylic"
         ExtendsContentIntoTitleBar="True"
         WindowCornerPreference="Round"
         Background="Transparent"
-        ResizeMode="CanResize"
+        ResizeMode="NoResize"
         AllowDrop="True"
         DragEnter="Window_DragEnter"
         DragLeave="Window_DragLeave"
@@ -211,6 +212,245 @@
             <Setter Property="Background" Value="Transparent"/>
         </Style>
 
+        <!-- Context Menu Style -->
+        <Style x:Key="AcrylicContextMenu" TargetType="ContextMenu">
+            <Setter Property="Background" Value="#F5202025"/>
+            <Setter Property="BorderBrush" Value="#30FFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Foreground" Value="#E2E8F0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <StackPanel IsItemsHost="True"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Clean Layout DataTemplate (Windows Start Menu style) -->
+        <DataTemplate x:Key="CleanItemTemplate" DataType="{x:Type models:VaultItem}">
+            <Border x:Name="CleanBorder"
+                    Margin="4" Height="80"
+                    CornerRadius="8"
+                    Background="Transparent"
+                    Cursor="Hand"
+                    AllowDrop="True"
+                    PreviewMouseLeftButtonDown="ItemCard_PreviewMouseLeftButtonDown"
+                    PreviewMouseMove="ItemCard_PreviewMouseMove"
+                    MouseLeftButtonUp="ItemCard_MouseLeftButtonUp"
+                    DragOver="ItemCard_DragOver"
+                    DragLeave="ItemCard_DragLeave"
+                    Drop="ItemCard_Drop">
+                <Border.ContextMenu>
+                    <ContextMenu Style="{StaticResource AcrylicContextMenu}">
+                        <MenuItem Header="&#x25B6; Launch" Click="MenuLaunch_Click" Tag="{Binding}"/>
+                        <MenuItem Header="&#x1F4DD; Rename" Click="MenuRename_Click" Tag="{Binding}"/>
+                        <MenuItem Header="&#x2699;&#xFE0F; Change Executable Target" Click="MenuChangePath_Click" Tag="{Binding}"/>
+                        <MenuItem Header="&#x1F5BC;&#xFE0F; Change Icon..." Click="MenuChangeIcon_Click" Tag="{Binding}"/>
+                        <MenuItem Header="&#x21BA; Reset Icon" Click="MenuResetIcon_Click" Tag="{Binding}"/>
+                        <MenuItem Header="&#x1F4C1; Open File Location" Click="MenuOpenLocation_Click" Tag="{Binding}"/>
+                        <MenuItem Header="&#x1F5D1;&#xFE0F; Remove from Vault" Click="MenuRemove_Click" Tag="{Binding}"/>
+                    </ContextMenu>
+                </Border.ContextMenu>
+
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4">
+                    <!-- Icon -->
+                    <Border Width="36" Height="36" HorizontalAlignment="Center" Margin="0,0,0,6">
+                        <Grid>
+                            <Image Source="{Binding IconSource}" RenderOptions.BitmapScalingMode="HighQuality" Stretch="Uniform"/>
+                            <TextBlock Text="{Binding CategoryIcon}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IconSource}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                    </Border>
+
+                    <!-- Title -->
+                    <TextBlock x:Name="TxtTitleNameClean"
+                               Text="{Binding Title}"
+                               Foreground="#7A90A8"
+                               FontSize="9"
+                               FontWeight="Medium"
+                               TextAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="100"/>
+                </StackPanel>
+
+                <Border.Triggers>
+                    <EventTrigger RoutedEvent="Border.MouseEnter">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation Storyboard.TargetName="CleanBorder"
+                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                    To="#1CFFFFFF" Duration="0:0:0.12"/>
+                                <ColorAnimation Storyboard.TargetName="TxtTitleNameClean"
+                                    Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                    To="#E2E8F0" Duration="0:0:0.12"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                    <EventTrigger RoutedEvent="Border.MouseLeave">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation Storyboard.TargetName="CleanBorder"
+                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                    To="Transparent" Duration="0:0:0.18"/>
+                                <ColorAnimation Storyboard.TargetName="TxtTitleNameClean"
+                                    Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                    To="#7A90A8" Duration="0:0:0.18"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Border.Triggers>
+            </Border>
+        </DataTemplate>
+
+        <!-- Cards Layout DataTemplate (Full card style with details) -->
+        <DataTemplate x:Key="CardsItemTemplate" DataType="{x:Type models:VaultItem}">
+            <Border x:Name="CardBorder"
+                    Margin="5" Height="100"
+                    CornerRadius="10"
+                    Background="#0AFFFFFF"
+                    BorderBrush="#0EFFFFFF"
+                    BorderThickness="1"
+                    Cursor="Hand"
+                    AllowDrop="True"
+                    PreviewMouseLeftButtonDown="ItemCard_PreviewMouseLeftButtonDown"
+                    PreviewMouseMove="ItemCard_PreviewMouseMove"
+                    MouseLeftButtonUp="ItemCard_MouseLeftButtonUp"
+                    DragOver="ItemCard_DragOver"
+                    DragLeave="ItemCard_DragLeave"
+                    Drop="ItemCard_Drop">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" BlurRadius="6" ShadowDepth="1" Opacity="0.4"/>
+                </Border.Effect>
+                <Border.ContextMenu>
+                    <ContextMenu Style="{StaticResource AcrylicContextMenu}">
+                        <MenuItem Header="&#x25B6; Launch" Click="MenuLaunch_Click" Tag="{Binding}"/>
+                        <MenuItem Header="&#x1F4DD; Rename" Click="MenuRename_Click" Tag="{Binding}"/>
+                        <MenuItem Header="&#x2699;&#xFE0F; Change Executable Target" Click="MenuChangePath_Click" Tag="{Binding}"/>
+                        <MenuItem Header="&#x1F5BC;&#xFE0F; Change Icon..." Click="MenuChangeIcon_Click" Tag="{Binding}"/>
+                        <MenuItem Header="&#x21BA; Reset Icon" Click="MenuResetIcon_Click" Tag="{Binding}"/>
+                        <MenuItem Header="&#x1F4C1; Open File Location" Click="MenuOpenLocation_Click" Tag="{Binding}"/>
+                        <MenuItem Header="&#x1F5D1;&#xFE0F; Remove from Vault" Click="MenuRemove_Click" Tag="{Binding}"/>
+                    </ContextMenu>
+                </Border.ContextMenu>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="18"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="24"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Category + Extension row -->
+                    <Grid Grid.Row="0" Margin="5,4,5,0">
+                        <Border HorizontalAlignment="Left" CornerRadius="4" Padding="3,1" Background="#1A6366F1">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding CategoryIcon}" FontSize="8" VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                <TextBlock Text="{Binding Category}" Foreground="#5B7A9A" FontSize="7.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <Border HorizontalAlignment="Right" CornerRadius="3" Padding="3,1" Background="#12FFFFFF">
+                            <TextBlock Text="{Binding ExtensionDisplay}" Foreground="#3E5272" FontSize="7" FontWeight="Bold"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- Icon -->
+                    <Border Grid.Row="1" Width="36" Height="36"
+                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Grid>
+                            <Image Source="{Binding IconSource}" RenderOptions.BitmapScalingMode="HighQuality" Stretch="Uniform"/>
+                            <TextBlock Text="{Binding CategoryIcon}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IconSource}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                    </Border>
+
+                    <!-- Title -->
+                    <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,0">
+                        <TextBlock x:Name="TxtTitleName"
+                                   Text="{Binding Title}"
+                                   Foreground="#7A90A8"
+                                   FontSize="10"
+                                   FontWeight="Medium"
+                                   TextAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxWidth="120"/>
+                        <Border x:Name="Underline"
+                                Height="1.5" Background="#6366F1"
+                                Margin="0,2,0,0"
+                                HorizontalAlignment="Center"
+                                Width="0"/>
+                    </StackPanel>
+                </Grid>
+
+                <Border.Triggers>
+                    <EventTrigger RoutedEvent="Border.MouseEnter">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation Storyboard.TargetName="CardBorder"
+                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                    To="#1CFFFFFF" Duration="0:0:0.12"/>
+                                <ColorAnimation Storyboard.TargetName="CardBorder"
+                                    Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                    To="#456366F1" Duration="0:0:0.12"/>
+                                <ColorAnimation Storyboard.TargetName="TxtTitleName"
+                                    Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                    To="#E2E8F0" Duration="0:0:0.12"/>
+                                <DoubleAnimation Storyboard.TargetName="Underline"
+                                    Storyboard.TargetProperty="Width"
+                                    To="34" Duration="0:0:0.18"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                    <EventTrigger RoutedEvent="Border.MouseLeave">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation Storyboard.TargetName="CardBorder"
+                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                    To="#08FFFFFF" Duration="0:0:0.18"/>
+                                <ColorAnimation Storyboard.TargetName="CardBorder"
+                                    Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                    To="#0DFFFFFF" Duration="0:0:0.18"/>
+                                <ColorAnimation Storyboard.TargetName="TxtTitleName"
+                                    Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                    To="#7A90A8" Duration="0:0:0.18"/>
+                                <DoubleAnimation Storyboard.TargetName="Underline"
+                                    Storyboard.TargetProperty="Width"
+                                    To="0" Duration="0:0:0.14"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Border.Triggers>
+            </Border>
+        </DataTemplate>
+
     </ui:FluentWindow.Resources>
 
     <Border x:Name="MainBorder" Background="#880A090F" BorderBrush="Transparent" BorderThickness="0" CornerRadius="10" ClipToBounds="True">
@@ -356,143 +596,12 @@
             <Grid Grid.Row="2" Margin="10,4,10,10">
                 <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
                               CanContentScroll="False">
-                    <ItemsControl x:Name="ItemsGrid" VerticalAlignment="Top">
+                    <ItemsControl x:Name="ItemsGrid" VerticalAlignment="Top" ItemTemplate="{StaticResource CardsItemTemplate}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <UniformGrid Columns="4" VerticalAlignment="Top"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type models:VaultItem}">
-                                 <Border x:Name="CardBorder"
-                                         Margin="5" Height="100"
-                                         CornerRadius="10"
-                                         Background="#0AFFFFFF"
-                                         BorderBrush="#0EFFFFFF"
-                                         BorderThickness="1"
-                                         Cursor="Hand"
-                                         AllowDrop="True"
-                                         PreviewMouseLeftButtonDown="ItemCard_PreviewMouseLeftButtonDown"
-                                         PreviewMouseMove="ItemCard_PreviewMouseMove"
-                                         MouseLeftButtonUp="ItemCard_MouseLeftButtonUp"
-                                         DragOver="ItemCard_DragOver"
-                                         DragLeave="ItemCard_DragLeave"
-                                         Drop="ItemCard_Drop">
-                                     <Border.Effect>
-                                         <DropShadowEffect Color="#000000" BlurRadius="6" ShadowDepth="1" Opacity="0.4"/>
-                                     </Border.Effect>
-                                     <Border.ContextMenu>
-                                         <ContextMenu>
-                                             <MenuItem Header="&#x25B6; Launch" Click="MenuLaunch_Click" Tag="{Binding}"/>
-                                             <MenuItem Header="&#x1F4DD; Rename" Click="MenuRename_Click" Tag="{Binding}"/>
-                                             <MenuItem Header="&#x2699;&#xFE0F; Change Executable Target..." Click="MenuChangePath_Click" Tag="{Binding}"/>
-                                             <MenuItem Header="&#x1F5BC;&#xFE0F; Change Icon..." Click="MenuChangeIcon_Click" Tag="{Binding}"/>
-                                             <MenuItem Header="&#x21BA; Reset Icon" Click="MenuResetIcon_Click" Tag="{Binding}"/>
-                                             <MenuItem Header="&#x1F4C1; Open File Location" Click="MenuOpenLocation_Click" Tag="{Binding}"/>
-                                             <MenuItem Header="&#x1F5D1;&#xFE0F; Remove from Vault" Click="MenuRemove_Click" Tag="{Binding}"/>
-                                         </ContextMenu>
-                                     </Border.ContextMenu>
-
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="18"/>
-                                            <RowDefinition Height="*"/>
-                                            <RowDefinition Height="24"/>
-                                        </Grid.RowDefinitions>
-
-                                        <!-- Category + Extension row -->
-                                        <Grid Grid.Row="0" Margin="5,4,5,0">
-                                            <Border HorizontalAlignment="Left" CornerRadius="4" Padding="3,1" Background="#1A6366F1">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding CategoryIcon}" FontSize="8" VerticalAlignment="Center" Margin="0,0,2,0"/>
-                                                    <TextBlock Text="{Binding Category}" Foreground="#5B7A9A" FontSize="7.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Border>
-                                            <Border HorizontalAlignment="Right" CornerRadius="3" Padding="3,1" Background="#12FFFFFF">
-                                                <TextBlock Text="{Binding ExtensionDisplay}" Foreground="#3E5272" FontSize="7" FontWeight="Bold"/>
-                                            </Border>
-                                        </Grid>
-
-                                        <!-- Icon -->
-                                        <Border Grid.Row="1" Width="36" Height="36"
-                                                HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <Grid>
-                                                <Image Source="{Binding IconSource}" RenderOptions.BitmapScalingMode="HighQuality" Stretch="Uniform"/>
-                                                <!-- Fallback Icon if IconSource is null -->
-                                                <TextBlock Text="{Binding CategoryIcon}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IconSource}" Value="{x:Null}">
-                                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                            </Grid>
-                                        </Border>
-
-                                        <!-- Title -->
-                                        <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,0">
-                                            <TextBlock x:Name="TxtTitleName"
-                                                       Text="{Binding Title}"
-                                                       Foreground="#7A90A8"
-                                                       FontSize="10"
-                                                       FontWeight="Medium"
-                                                       TextAlignment="Center"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       MaxWidth="120"/>
-                                            <Border x:Name="Underline"
-                                                    Height="1.5" Background="#6366F1"
-                                                    Margin="0,2,0,0"
-                                                    HorizontalAlignment="Center"
-                                                    Width="0"/>
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <Border.Triggers>
-                                        <EventTrigger RoutedEvent="Border.MouseEnter">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <ColorAnimation Storyboard.TargetName="CardBorder"
-                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                        To="#1CFFFFFF" Duration="0:0:0.12"/>
-                                                    <ColorAnimation Storyboard.TargetName="CardBorder"
-                                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
-                                                        To="#456366F1" Duration="0:0:0.12"/>
-                                                    <ColorAnimation Storyboard.TargetName="TxtTitleName"
-                                                        Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
-                                                        To="#E2E8F0" Duration="0:0:0.12"/>
-                                                    <DoubleAnimation Storyboard.TargetName="Underline"
-                                                        Storyboard.TargetProperty="Width"
-                                                        To="34" Duration="0:0:0.18"/>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                        <EventTrigger RoutedEvent="Border.MouseLeave">
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <ColorAnimation Storyboard.TargetName="CardBorder"
-                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                        To="#08FFFFFF" Duration="0:0:0.18"/>
-                                                    <ColorAnimation Storyboard.TargetName="CardBorder"
-                                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
-                                                        To="#0DFFFFFF" Duration="0:0:0.18"/>
-                                                    <ColorAnimation Storyboard.TargetName="TxtTitleName"
-                                                        Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
-                                                        To="#7A90A8" Duration="0:0:0.18"/>
-                                                    <DoubleAnimation Storyboard.TargetName="Underline"
-                                                        Storyboard.TargetProperty="Width"
-                                                        To="0" Duration="0:0:0.14"/>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger>
-                                    </Border.Triggers>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
                                     <!-- Drag & Drop Overlay -->
@@ -515,12 +624,8 @@
                        Focusable="False"
                        StaysOpen="False"
                        IsOpen="False">
-                    <!-- Outer Border padding gives DropShadowEffect a 14px buffer so native hwnd doesn't clip shadow into a square box -->
                     <Border Padding="14" Background="Transparent">
-                        <Border Background="#E6111728" BorderBrush="#306366F1" BorderThickness="1" CornerRadius="14" Width="330" MaxHeight="360">
-                            <Border.Effect>
-                                <DropShadowEffect Color="#6366F1" BlurRadius="20" ShadowDepth="2" Opacity="0.3"/>
-                            </Border.Effect>
+                        <Border Background="#F0202025" BorderBrush="#30FFFFFF" BorderThickness="1" CornerRadius="10" Width="330" MaxHeight="360">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -528,7 +633,7 @@
                                 </Grid.RowDefinitions>
 
                                 <!-- Popup Header -->
-                                <Border Grid.Row="0" Background="#12FFFFFF" CornerRadius="13,13,0,0" Padding="14,10" BorderBrush="#15FFFFFF" BorderThickness="0,0,0,1">
+                                <Border Grid.Row="0" Background="#12FFFFFF" CornerRadius="9,9,0,0" Padding="14,10" BorderBrush="#15FFFFFF" BorderThickness="0,0,0,1">
                                     <Grid>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <TextBlock Text="⚡" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
@@ -539,7 +644,7 @@
                                 </Border>
 
                                 <!-- Results List -->
-                                <Border Grid.Row="1" CornerRadius="0,0,13,13" ClipToBounds="True">
+                                <Border Grid.Row="1" CornerRadius="0,0,9,9" ClipToBounds="True">
                                     <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled" MaxHeight="300" Padding="4,4,4,6">
                                         <ItemsControl x:Name="SearchResultsList">
                                             <ItemsControl.ItemTemplate>
@@ -603,7 +708,7 @@
                 <Popup x:Name="SettingsPopup" PlacementTarget="{x:Reference SettingsBtn}"
                        Placement="Bottom" HorizontalOffset="-200" AllowsTransparency="True" PopupAnimation="None"
                        StaysOpen="True" Opened="SettingsPopup_Open" Closed="SettingsPopup_Closed">
-                    <Border x:Name="SettingsPopupBorder" Background="#1A1830" BorderBrush="#2A2740" BorderThickness="1" CornerRadius="8"
+                    <Border x:Name="SettingsPopupBorder" Background="#F0202025" BorderBrush="#30FFFFFF" BorderThickness="1" CornerRadius="10"
                             Padding="4" Margin="0,4" MinWidth="260"
                             RenderTransformOrigin="1,0">
                         <Border.RenderTransform>
@@ -619,7 +724,7 @@
                             <StackPanel x:Name="SettingsMenuItems" Grid.Row="0">
                                 <!-- Check for Updates -->
                                 <Border Cursor="Hand" MouseLeftButtonDown="CheckUpdate_Click"
-                                        Padding="12,10" CornerRadius="6" Background="Transparent">
+                                        Padding="12,10" CornerRadius="8" Background="Transparent">
                                     <Border.RenderTransform>
                                         <TranslateTransform X="0"/>
                                     </Border.RenderTransform>
@@ -627,7 +732,7 @@
                                         <Style TargetType="Border">
                                             <Style.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#256366F1"/>
+                                                    <Setter Property="Background" Value="#20FFFFFF"/>
                                                 </Trigger>
                                             </Style.Triggers>
                                         </Style>
@@ -637,7 +742,7 @@
                                             <BeginStoryboard>
                                                 <Storyboard>
                                                     <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                                    To="#256366F1" Duration="0:0:0.15"/>
+                                                                    To="#20FFFFFF" Duration="0:0:0.15"/>
                                                     <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
                                                                      To="2" Duration="0:0:0.12"/>
                                                 </Storyboard>
@@ -662,19 +767,20 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="&#x1F504;" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Check for Updates" Foreground="#E2E8F0" FontSize="12.5"/>
-                                            <TextBlock x:Name="UpdateStatusText" Text="You're running the latest version" Foreground="#5B7A9A" FontSize="10" Margin="0,1,0,0"/>
+                                            <TextBlock Text="Check for Updates" Foreground="#F8FAFC" FontSize="12.5"/>
+                                            <TextBlock x:Name="UpdateStatusText" Text="You're running the latest version" Foreground="#64748B" FontSize="10" Margin="0,1,0,0"/>
                                         </StackPanel>
-                                        <TextBlock Grid.Column="2" Text="&#x276F;" Foreground="#5B7A9A" FontSize="11" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="&#x276F;" Foreground="#64748B" FontSize="11" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
 
                                 <!-- Separator -->
-                                <Border Height="1" Background="#2A2740" Margin="8,2"/>
+                                <Border Height="1" Background="#15FFFFFF" Margin="8,2"/>
 
-                                <!-- About -->
-                                <Border Cursor="Hand" MouseLeftButtonDown="About_Click"
-                                        Padding="12,10" CornerRadius="6" Background="Transparent">
+                                <!-- Layout -->
+                                <Border x:Name="LayoutMenuItem" Cursor="Hand"
+                                        Padding="12,10" CornerRadius="8" Background="Transparent"
+                                        MouseEnter="LayoutMenu_Enter" MouseLeave="LayoutMenu_Leave">
                                     <Border.RenderTransform>
                                         <TranslateTransform X="0"/>
                                     </Border.RenderTransform>
@@ -682,7 +788,7 @@
                                         <Style TargetType="Border">
                                             <Style.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#256366F1"/>
+                                                    <Setter Property="Background" Value="#20FFFFFF"/>
                                                 </Trigger>
                                             </Style.Triggers>
                                         </Style>
@@ -692,7 +798,59 @@
                                             <BeginStoryboard>
                                                 <Storyboard>
                                                     <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                                    To="#256366F1" Duration="0:0:0.15"/>
+                                                                    To="#20FFFFFF" Duration="0:0:0.15"/>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                                     To="2" Duration="0:0:0.12"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                        <EventTrigger RoutedEvent="Border.MouseLeave">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                    To="Transparent" Duration="0:0:0.2"/>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                                     To="0" Duration="0:0:0.15"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Border.Triggers>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="&#x1F5BC;" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <TextBlock Grid.Column="1" Text="Layout" Foreground="#F8FAFC" FontSize="12.5" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="&#x276F;" Foreground="#64748B" FontSize="11" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Separator -->
+                                <Border Height="1" Background="#15FFFFFF" Margin="8,2"/>
+
+                                <!-- About -->
+                                <Border Cursor="Hand" MouseLeftButtonDown="About_Click"
+                                        Padding="12,10" CornerRadius="8" Background="Transparent">
+                                    <Border.RenderTransform>
+                                        <TranslateTransform X="0"/>
+                                    </Border.RenderTransform>
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#20FFFFFF"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Border.Triggers>
+                                        <EventTrigger RoutedEvent="Border.MouseEnter">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                    To="#20FFFFFF" Duration="0:0:0.15"/>
                                                     <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
                                                                      To="2" Duration="0:0:0.12"/>
                                                 </Storyboard>
@@ -716,17 +874,17 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="&#x2139;" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <TextBlock Grid.Column="1" Text="About ZeeVault" Foreground="#E2E8F0" FontSize="12.5" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="2" Text="&#x276F;" Foreground="#5B7A9A" FontSize="11" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="About ZeeVault" Foreground="#F8FAFC" FontSize="12.5" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="&#x276F;" Foreground="#64748B" FontSize="11" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
                             </StackPanel>
 
-                            <!-- Inline About Panel (replaces menu items when About is clicked) -->
+                            <!-- Inline About Panel -->
                             <StackPanel x:Name="AboutInlinePanel" Grid.Row="1" Visibility="Collapsed">
-                                <Border Height="1" Background="#2A2740" Margin="8,4"/>
+                                <Border Height="1" Background="#15FFFFFF" Margin="8,4"/>
                                 <StackPanel Margin="8,4">
-                                    <TextBlock Text="ZeeVault" FontSize="15" FontWeight="Bold" Foreground="#E2E8F0" Margin="4,0,0,6"/>
+                                    <TextBlock Text="ZeeVault" FontSize="15" FontWeight="Bold" Foreground="#F8FAFC" Margin="4,0,0,6"/>
                                     <Border Background="#206366F1" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" Margin="4,0,0,10">
                                         <TextBlock x:Name="AboutInlineVersionText" Text="Version 1.0.0" Foreground="#A5B4FC" FontSize="9.5" FontWeight="SemiBold"/>
                                     </Border>
@@ -735,7 +893,7 @@
                                             <ColumnDefinition Width="70"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Author" Foreground="#5B7A9A" FontSize="10" Margin="0,0,0,5"/>
+                                        <TextBlock Grid.Column="0" Text="Author" Foreground="#64748B" FontSize="10" Margin="0,0,0,5"/>
                                         <TextBlock Grid.Column="1" Text="Charlotte Zee" Foreground="#CBD5E1" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,5"/>
                                     </Grid>
                                     <Grid Margin="4,0,0,0">
@@ -743,7 +901,7 @@
                                             <ColumnDefinition Width="70"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="License" Foreground="#5B7A9A" FontSize="10" Margin="0,0,0,5"/>
+                                        <TextBlock Grid.Column="0" Text="License" Foreground="#64748B" FontSize="10" Margin="0,0,0,5"/>
                                         <TextBlock Grid.Column="1" Text="Personal Use &amp; Modification" Foreground="#CBD5E1" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,5"/>
                                     </Grid>
                                     <Grid Margin="4,0,0,0">
@@ -751,10 +909,10 @@
                                             <ColumnDefinition Width="70"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Framework" Foreground="#5B7A9A" FontSize="10" Margin="0,0,0,8"/>
+                                        <TextBlock Grid.Column="0" Text="Framework" Foreground="#64748B" FontSize="10" Margin="0,0,0,8"/>
                                         <TextBlock Grid.Column="1" Text=".NET 10 / WPF" Foreground="#CBD5E1" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                     </Grid>
-                                    <Border Height="1" Background="#2A2740" Margin="0,0,0,8"/>
+                                    <Border Height="1" Background="#15FFFFFF" Margin="0,0,0,8"/>
                                     <Button Content="&#x1F517;  View on GitHub" Click="AboutGitHub_Click"
                                             Background="#6366F1" Foreground="White" FontWeight="SemiBold" FontSize="10"
                                             BorderThickness="0" Cursor="Hand" Padding="10,5" HorizontalAlignment="Stretch"
@@ -766,8 +924,8 @@
                                         </Button.Resources>
                                     </Button>
                                     <Button x:Name="AboutBackBtn" Content="&#x25C0;  Back" Click="AboutBack_Click"
-                                            Background="Transparent" Foreground="#5B7A9A" FontWeight="SemiBold" FontSize="10"
-                                            BorderThickness="1" BorderBrush="#2A2740" Cursor="Hand" Padding="10,5"
+                                            Background="Transparent" Foreground="#64748B" FontWeight="SemiBold" FontSize="10"
+                                            BorderThickness="1" BorderBrush="#15FFFFFF" Cursor="Hand" Padding="10,5"
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
                                         <Button.Resources>
                                             <Style TargetType="Border">
@@ -778,6 +936,89 @@
                                 </StackPanel>
                             </StackPanel>
                         </Grid>
+                    </Border>
+                </Popup>
+
+                <!-- Layout Submenu Popup (appears to the right of Layout option) -->
+                <Popup x:Name="LayoutSubmenuPopup" PlacementTarget="{x:Reference LayoutMenuItem}"
+                       Placement="Right" HorizontalOffset="-4" AllowsTransparency="True"
+                       StaysOpen="True" IsOpen="False"
+                       MouseEnter="LayoutSubmenu_Enter" MouseLeave="LayoutSubmenu_Leave">
+                    <Border x:Name="LayoutSubmenuBorder" Background="#F0202025" BorderBrush="#30FFFFFF" BorderThickness="1" CornerRadius="10"
+                            Padding="4" MinWidth="140">
+                        <StackPanel>
+                            <!-- Clean Style -->
+                            <Border Cursor="Hand" MouseLeftButtonDown="LayoutClean_Click"
+                                    Padding="10,7" CornerRadius="8" Background="Transparent">
+                                <Border.RenderTransform>
+                                    <TranslateTransform X="0"/>
+                                </Border.RenderTransform>
+                                <Border.Triggers>
+                                    <EventTrigger RoutedEvent="Border.MouseEnter">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="#30FFFFFF" Duration="0:0:0.1"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                    <EventTrigger RoutedEvent="Border.MouseLeave">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="Transparent" Duration="0:0:0.15"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Border.Triggers>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x25CB;" FontSize="11" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Column="1" Text="Clean" Foreground="#F8FAFC" FontSize="11.5" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="LayoutCleanCheck" Grid.Column="2" Text="&#x2713;" Foreground="#6366F1" FontSize="12" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Cards Style -->
+                            <Border Cursor="Hand" MouseLeftButtonDown="LayoutCards_Click"
+                                    Padding="10,7" CornerRadius="8" Background="Transparent">
+                                <Border.RenderTransform>
+                                    <TranslateTransform X="0"/>
+                                </Border.RenderTransform>
+                                <Border.Triggers>
+                                    <EventTrigger RoutedEvent="Border.MouseEnter">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="#30FFFFFF" Duration="0:0:0.1"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                    <EventTrigger RoutedEvent="Border.MouseLeave">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="Transparent" Duration="0:0:0.15"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Border.Triggers>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x25A3;" FontSize="11" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Column="1" Text="Cards" Foreground="#F8FAFC" FontSize="11.5" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="LayoutCardsCheck" Grid.Column="2" Text="&#x2713;" Foreground="#6366F1" FontSize="12" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
                     </Border>
                 </Popup>
 

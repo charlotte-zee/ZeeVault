@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Net.Http;
@@ -19,6 +20,7 @@ namespace ZeeVault
     {
         private readonly LibraryService _libraryService;
         private string _activeCategory = "All";
+        private string _currentLayout = "cards"; // "clean" or "cards"
 
         public MainWindow()
         {
@@ -29,6 +31,7 @@ namespace ZeeVault
             Loaded += MainWindow_Loaded;
             LocationChanged += MainWindow_LocationChanged;
             PreviewMouseDown += MainWindow_PreviewMouseDown;
+            StateChanged += MainWindow_StateChanged;
         }
 
         private void MainWindow_LocationChanged(object? sender, EventArgs e)
@@ -59,6 +62,10 @@ namespace ZeeVault
             // Now load library icons — all protocol icon mappings are ready in UrlIconCache
             await _libraryService.LoadIconsAsync(Dispatcher);
 
+            // Load and apply saved layout
+            _currentLayout = LoadLayoutSetting();
+            ApplyLayout();
+
             // Auto-check for updates on startup
             _ = CheckForUpdateOnStartup();
         }
@@ -73,9 +80,40 @@ namespace ZeeVault
             catch
             {
             }
+
+            // Block resize cursors and drag via WndProc
+            var source = HwndSource.FromHwnd(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+            source?.AddHook(WndProc);
+        }
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            const int WM_NCHITTEST = 0x0084;
+            const int HTCLIENT = 1;
+
+            if (msg == WM_NCHITTEST && WindowState != System.Windows.WindowState.Maximized)
+            {
+                // Force all border hits to HTCLIENT — no resize cursors, no drag
+                handled = true;
+                return new IntPtr(HTCLIENT);
+            }
+
+            return IntPtr.Zero;
         }
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // Enforce fixed size when not maximized
+            if (WindowState != System.Windows.WindowState.Maximized)
+            {
+                if (Width != 960) Width = 960;
+                if (Height != 660) Height = 660;
+            }
+
+            UpdateGridColumns();
+        }
+
+        private void MainWindow_StateChanged(object? sender, EventArgs e)
         {
             UpdateGridColumns();
         }
@@ -84,9 +122,12 @@ namespace ZeeVault
         {
             if (ItemsGrid == null) return;
 
+            // Normal mode: 5 columns for a tighter, cleaner look
+            double normalCardWidth = (960.0 - 50.0) / 5.0;
             double availableWidth = ActualWidth - 50;
-            int cardMinWidth = 165;
-            int columns = Math.Max(1, Math.Min(6, (int)(availableWidth / cardMinWidth)));
+
+            // How many columns fit at the same card width as normal mode
+            int columns = Math.Max(1, (int)Math.Round(availableWidth / normalCardWidth));
 
             var uniformGrid = FindUniformGrid(ItemsGrid);
             if (uniformGrid != null)
@@ -328,7 +369,16 @@ namespace ZeeVault
         {
             if (!_isDraggingCard && sender is FrameworkElement element && element.DataContext is VaultItem item)
             {
+                // Show loading cursor and launch immediately
+                Mouse.OverrideCursor = Cursors.Wait;
                 LaunchItem(item);
+
+                // Reset cursor after a short delay
+                Dispatcher.InvokeAsync(async () =>
+                {
+                    await System.Threading.Tasks.Task.Delay(500);
+                    Mouse.OverrideCursor = null;
+                }, System.Windows.Threading.DispatcherPriority.Normal);
             }
         }
 
@@ -1041,6 +1091,10 @@ namespace ZeeVault
                 SettingsMenuItems.Visibility = Visibility.Visible;
                 AboutInlinePanel.Visibility = Visibility.Collapsed;
             }
+
+            // Hide layout submenu popup
+            if (LayoutSubmenuPopup != null)
+                LayoutSubmenuPopup.IsOpen = false;
         }
 
         private string GetCurrentVersion()
@@ -1133,6 +1187,121 @@ namespace ZeeVault
         {
             Process.Start(new ProcessStartInfo("https://github.com/charlotte-zee/ZeeVault") { UseShellExecute = true });
         }
+
+        #region Layout Switching
+
+        private void LayoutMenu_Enter(object sender, MouseEventArgs e)
+        {
+            if (LayoutSubmenuPopup != null)
+                LayoutSubmenuPopup.IsOpen = true;
+        }
+
+        private void LayoutMenu_Leave(object sender, MouseEventArgs e)
+        {
+            // Hide submenu after a small delay so clicking submenu items works
+            Dispatcher.InvokeAsync(async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(200);
+                if (!LayoutMenuItem.IsMouseOver && !LayoutSubmenuPopup.IsMouseOver)
+                {
+                    if (LayoutSubmenuPopup != null)
+                        LayoutSubmenuPopup.IsOpen = false;
+                }
+            }, System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        private void LayoutSubmenu_Enter(object sender, MouseEventArgs e)
+        {
+            // Keep submenu visible when hovering over it
+        }
+
+        private void LayoutSubmenu_Leave(object sender, MouseEventArgs e)
+        {
+            // Hide submenu when leaving it
+            Dispatcher.InvokeAsync(async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(200);
+                if (!LayoutMenuItem.IsMouseOver && !LayoutSubmenuPopup.IsMouseOver)
+                {
+                    if (LayoutSubmenuPopup != null)
+                        LayoutSubmenuPopup.IsOpen = false;
+                }
+            }, System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        private void LayoutClean_Click(object sender, MouseButtonEventArgs e)
+        {
+            _currentLayout = "clean";
+            ApplyLayout();
+            SaveLayoutSetting();
+            LayoutSubmenuPopup.IsOpen = false;
+            SettingsPopup.IsOpen = false;
+        }
+
+        private void LayoutCards_Click(object sender, MouseButtonEventArgs e)
+        {
+            _currentLayout = "cards";
+            ApplyLayout();
+            SaveLayoutSetting();
+            LayoutSubmenuPopup.IsOpen = false;
+            SettingsPopup.IsOpen = false;
+        }
+
+        private void ApplyLayout()
+        {
+            if (_currentLayout == "clean")
+            {
+                ItemsGrid.ItemTemplate = (DataTemplate)FindResource("CleanItemTemplate");
+                LayoutCleanCheck.Visibility = Visibility.Visible;
+                LayoutCardsCheck.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                ItemsGrid.ItemTemplate = (DataTemplate)FindResource("CardsItemTemplate");
+                LayoutCleanCheck.Visibility = Visibility.Collapsed;
+                LayoutCardsCheck.Visibility = Visibility.Visible;
+            }
+        }
+
+        private string _settingsPath = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "ZeeVault", "settings.json");
+
+        private void SaveLayoutSetting()
+        {
+            try
+            {
+                string dir = System.IO.Path.GetDirectoryName(_settingsPath)!;
+                if (!System.IO.Directory.Exists(dir))
+                    System.IO.Directory.CreateDirectory(dir);
+
+                System.IO.File.WriteAllText(_settingsPath, $"{{\"layout\":\"{_currentLayout}\"}}");
+            }
+            catch { }
+        }
+
+        private string LoadLayoutSetting()
+        {
+            try
+            {
+                if (System.IO.File.Exists(_settingsPath))
+                {
+                    string json = System.IO.File.ReadAllText(_settingsPath);
+                    int idx = json.IndexOf("\"layout\"");
+                    if (idx >= 0)
+                    {
+                        int colon = json.IndexOf(':', idx);
+                        int start = json.IndexOf('"', colon + 1);
+                        int end = json.IndexOf('"', start + 1);
+                        return json.Substring(start + 1, end - start - 1);
+                    }
+                }
+            }
+            catch { }
+            return "clean";
+        }
+
+        #endregion
 
         #region Auto-Update System
 
