@@ -596,7 +596,7 @@
             <Grid Grid.Row="2" Margin="10,4,10,10">
                 <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"
                               CanContentScroll="False">
-                    <ItemsControl x:Name="ItemsGrid" VerticalAlignment="Top" ItemTemplate="{StaticResource CardsItemTemplate}">
+                    <ItemsControl x:Name="ItemsGrid" VerticalAlignment="Top" ItemTemplate="{StaticResource CleanItemTemplate}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <UniformGrid Columns="4" VerticalAlignment="Top"/>
