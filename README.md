@@ -4,7 +4,8 @@ A sleek, modern app launcher and vault for Windows. Organize your games, tools, 
 
 <img width="964" height="661" alt="image" src="https://github.com/user-attachments/assets/524db5f1-5236-4b37-b993-f301518c54ee" />
 
-<img width="962" height="664" alt="image" src="https://github.com/user-attachments/assets/12e63c74-1b05-4709-908b-2e5c55ea3b4f" />
+<img width="968" height="669" alt="image" src="https://github.com/user-attachments/assets/173f22c0-31ca-49a8-93ec-d838faa8b8bd" />
+
 
 
 
