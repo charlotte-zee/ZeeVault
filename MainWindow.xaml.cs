@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -51,21 +52,37 @@ namespace ZeeVault
             }
         }
 
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private bool _isPreloaded = false;
+
+        public async Task PreloadAsync()
         {
-            // Invalidate stale caches so AUMIDs get re-indexed with correct shell:AppsFolder\ prefix
+            if (_isPreloaded) return;
+            _isPreloaded = true;
+
+            // Invalidate stale caches
             IconExtractor.InvalidateCache();
             WindowsAppSearchService.InvalidateCache();
 
-            // Run search index FIRST so UrlIconCache has all shortcut icon mappings ready
+            // Run search index FIRST
             await System.Threading.Tasks.Task.Run(() => WindowsAppSearchService.EnsureIndexed());
 
-            // Now load library icons — all protocol icon mappings are ready in UrlIconCache
+            // Load library icons
             await _libraryService.LoadIconsAsync(Dispatcher);
 
-            // Load and apply saved layout
-            _currentLayout = LoadLayoutSetting();
+            // Load settings
+            LoadSettings();
             ApplyLayout();
+            UpdatePasswordChecks();
+            UpdateCloseOnLaunchChecks();
+        }
+
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // If not preloaded yet (no password), do it now
+            if (!_isPreloaded)
+            {
+                await PreloadAsync();
+            }
 
             // Auto-check for updates on startup
             _ = CheckForUpdateOnStartup();
@@ -560,6 +577,16 @@ namespace ZeeVault
                 }
 
                 Process.Start(psi);
+
+                // Close vault after launching if enabled
+                if (_closeOnLaunch)
+                {
+                    Dispatcher.InvokeAsync(async () =>
+                    {
+                        await System.Threading.Tasks.Task.Delay(300);
+                        Application.Current.Shutdown();
+                    }, System.Windows.Threading.DispatcherPriority.Background);
+                }
             }
             catch (Exception ex)
             {
@@ -1102,9 +1129,13 @@ namespace ZeeVault
                 AboutInlinePanel.Visibility = Visibility.Collapsed;
             }
 
-            // Hide layout submenu popup
+            // Hide all submenu popups
             if (LayoutSubmenuPopup != null)
                 LayoutSubmenuPopup.IsOpen = false;
+            if (PasswordSubmenuPopup != null)
+                PasswordSubmenuPopup.IsOpen = false;
+            if (CloseOnLaunchSubmenuPopup != null)
+                CloseOnLaunchSubmenuPopup.IsOpen = false;
         }
 
         private string GetCurrentVersion()
@@ -1244,7 +1275,7 @@ namespace ZeeVault
         {
             _currentLayout = "clean";
             ApplyLayout();
-            SaveLayoutSetting();
+            SaveSettings();
             LayoutSubmenuPopup.IsOpen = false;
             SettingsPopup.IsOpen = false;
         }
@@ -1253,7 +1284,7 @@ namespace ZeeVault
         {
             _currentLayout = "cards";
             ApplyLayout();
-            SaveLayoutSetting();
+            SaveSettings();
             LayoutSubmenuPopup.IsOpen = false;
             SettingsPopup.IsOpen = false;
         }
@@ -1277,40 +1308,6 @@ namespace ZeeVault
         private string _settingsPath = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "ZeeVault", "settings.json");
-
-        private void SaveLayoutSetting()
-        {
-            try
-            {
-                string dir = System.IO.Path.GetDirectoryName(_settingsPath)!;
-                if (!System.IO.Directory.Exists(dir))
-                    System.IO.Directory.CreateDirectory(dir);
-
-                System.IO.File.WriteAllText(_settingsPath, $"{{\"layout\":\"{_currentLayout}\"}}");
-            }
-            catch { }
-        }
-
-        private string LoadLayoutSetting()
-        {
-            try
-            {
-                if (System.IO.File.Exists(_settingsPath))
-                {
-                    string json = System.IO.File.ReadAllText(_settingsPath);
-                    int idx = json.IndexOf("\"layout\"");
-                    if (idx >= 0)
-                    {
-                        int colon = json.IndexOf(':', idx);
-                        int start = json.IndexOf('"', colon + 1);
-                        int end = json.IndexOf('"', start + 1);
-                        return json.Substring(start + 1, end - start - 1);
-                    }
-                }
-            }
-            catch { }
-            return "clean";
-        }
 
         #endregion
 
@@ -1469,6 +1466,432 @@ namespace ZeeVault
         {
             UpdateBanner.Visibility = Visibility.Collapsed;
             InstallBanner.Visibility = Visibility.Collapsed;
+        }
+
+        #endregion
+
+        #region Password System
+
+        private bool _isPasswordSet = false;
+        private string _passwordHash = string.Empty;
+        private string _passwordHint = string.Empty;
+
+        private void PasswordMenu_Enter(object sender, MouseEventArgs e)
+        {
+            if (PasswordSubmenuPopup != null)
+                PasswordSubmenuPopup.IsOpen = true;
+        }
+
+        private void PasswordMenu_Leave(object sender, MouseEventArgs e)
+        {
+            Dispatcher.InvokeAsync(async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(200);
+                if (!PasswordMenuItem.IsMouseOver && !PasswordSubmenuPopup.IsMouseOver)
+                {
+                    if (PasswordSubmenuPopup != null)
+                        PasswordSubmenuPopup.IsOpen = false;
+                }
+            }, System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        private void PasswordSubmenu_Enter(object sender, MouseEventArgs e) { }
+
+        private void PasswordSubmenu_Leave(object sender, MouseEventArgs e)
+        {
+            Dispatcher.InvokeAsync(async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(200);
+                if (!PasswordMenuItem.IsMouseOver && !PasswordSubmenuPopup.IsMouseOver)
+                {
+                    if (PasswordSubmenuPopup != null)
+                        PasswordSubmenuPopup.IsOpen = false;
+                }
+            }, System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        private void PasswordNew_Click(object sender, MouseButtonEventArgs e)
+        {
+            PasswordSubmenuPopup.IsOpen = false;
+            SettingsPopup.IsOpen = false;
+
+            var dialog = new System.Windows.Window
+            {
+                Title = "Set Password",
+                Width = 380,
+                Height = 300,
+                WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner,
+                Owner = this,
+                ResizeMode = System.Windows.ResizeMode.NoResize,
+                WindowStyle = System.Windows.WindowStyle.None,
+                AllowsTransparency = true,
+                Background = System.Windows.Media.Brushes.Transparent,
+            };
+
+            var outerBorder = new System.Windows.Controls.Border
+            {
+                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(15, 13, 25)),
+                BorderBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#30FFFFFF")),
+                BorderThickness = new System.Windows.Thickness(1),
+                CornerRadius = new System.Windows.CornerRadius(12),
+                Padding = new System.Windows.Thickness(0),
+            };
+
+            var mainStack = new System.Windows.Controls.StackPanel();
+
+            // Header
+            var header = new System.Windows.Controls.Border
+            {
+                Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#12FFFFFF")),
+                Padding = new System.Windows.Thickness(20, 16, 20, 16),
+                CornerRadius = new System.Windows.CornerRadius(12, 12, 0, 0),
+            };
+            var headerStack = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal };
+            headerStack.Children.Add(new System.Windows.Controls.TextBlock
+            {
+                Text = "🔒",
+                FontSize = 16,
+                VerticalAlignment = System.Windows.VerticalAlignment.Center,
+                Margin = new System.Windows.Thickness(0, 0, 10, 0),
+            });
+            headerStack.Children.Add(new System.Windows.Controls.TextBlock
+            {
+                Text = "Set Password",
+                Foreground = System.Windows.Media.Brushes.White,
+                FontSize = 16,
+                FontWeight = System.Windows.FontWeights.Bold,
+                VerticalAlignment = System.Windows.VerticalAlignment.Center,
+            });
+            header.Child = headerStack;
+            mainStack.Children.Add(header);
+
+            // Content
+            var content = new System.Windows.Controls.StackPanel { Margin = new System.Windows.Thickness(20, 16, 20, 16) };
+
+            content.Children.Add(new System.Windows.Controls.TextBlock
+            {
+                Text = "PASSWORD",
+                Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#64748B")),
+                FontSize = 10,
+                FontWeight = System.Windows.FontWeights.Bold,
+                Margin = new System.Windows.Thickness(0, 0, 0, 6),
+            });
+
+            var passBox = new System.Windows.Controls.PasswordBox
+            {
+                FontSize = 14,
+                Padding = new System.Windows.Thickness(10, 8, 10, 8),
+                Margin = new System.Windows.Thickness(0, 0, 0, 14),
+                Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#0AFFFFFF")),
+                Foreground = System.Windows.Media.Brushes.White,
+                BorderBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#18FFFFFF")),
+                BorderThickness = new System.Windows.Thickness(1),
+            };
+            // Round the border
+            var passBorder = new System.Windows.Controls.Border
+            {
+                Child = passBox,
+                CornerRadius = new System.Windows.CornerRadius(6),
+                Margin = new System.Windows.Thickness(0, 0, 0, 14),
+            };
+            content.Children.Add(passBorder);
+
+            content.Children.Add(new System.Windows.Controls.TextBlock
+            {
+                Text = "HINT (required)",
+                Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#64748B")),
+                FontSize = 10,
+                FontWeight = System.Windows.FontWeights.Bold,
+                Margin = new System.Windows.Thickness(0, 0, 0, 6),
+            });
+
+            var hintBox = new System.Windows.Controls.TextBox
+            {
+                FontSize = 13,
+                Padding = new System.Windows.Thickness(10, 8, 10, 8),
+                Margin = new System.Windows.Thickness(0, 0, 0, 18),
+                Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#0AFFFFFF")),
+                Foreground = System.Windows.Media.Brushes.White,
+                BorderBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#18FFFFFF")),
+                BorderThickness = new System.Windows.Thickness(1),
+                CaretBrush = System.Windows.Media.Brushes.White,
+            };
+            var hintBorder = new System.Windows.Controls.Border
+            {
+                Child = hintBox,
+                CornerRadius = new System.Windows.CornerRadius(6),
+                Margin = new System.Windows.Thickness(0, 0, 0, 18),
+            };
+            content.Children.Add(hintBorder);
+
+            // Error text
+            var errorText = new System.Windows.Controls.TextBlock
+            {
+                Text = "",
+                Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#EF4444")),
+                FontSize = 11,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                Margin = new System.Windows.Thickness(0, 0, 0, 10),
+                Visibility = System.Windows.Visibility.Collapsed,
+            };
+            content.Children.Add(errorText);
+
+            // Buttons
+            var buttons = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch };
+            var okBtn = new System.Windows.Controls.Button
+            {
+                Content = "🔒  Set Password",
+                Height = 36,
+                Margin = new System.Windows.Thickness(0, 0, 8, 0),
+                Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#6366F1")),
+                Foreground = System.Windows.Media.Brushes.White,
+                FontSize = 13,
+                FontWeight = System.Windows.FontWeights.SemiBold,
+                Cursor = System.Windows.Input.Cursors.Hand,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch,
+            };
+            var cancelBtn = new System.Windows.Controls.Button
+            {
+                Content = "Cancel",
+                Width = 80,
+                Height = 36,
+                Background = System.Windows.Media.Brushes.Transparent,
+                Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#64748B")),
+                FontSize = 13,
+                Cursor = System.Windows.Input.Cursors.Hand,
+                BorderThickness = new System.Windows.Thickness(1),
+                BorderBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#15FFFFFF")),
+            };
+
+            okBtn.Click += (s2, e2) =>
+            {
+                string pass = passBox.Password.Trim();
+                string hint = hintBox.Text.Trim();
+
+                if (string.IsNullOrWhiteSpace(pass))
+                {
+                    errorText.Text = "Please enter a password.";
+                    errorText.Visibility = System.Windows.Visibility.Visible;
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(hint))
+                {
+                    errorText.Text = "Please enter a hint. You'll need it.";
+                    errorText.Visibility = System.Windows.Visibility.Visible;
+                    return;
+                }
+
+                _passwordHash = HashPassword(pass);
+                _passwordHint = hint;
+                _isPasswordSet = true;
+                SaveSettings();
+                UpdatePasswordChecks();
+                dialog.Close();
+            };
+            cancelBtn.Click += (s2, e2) => { dialog.Close(); };
+
+            buttons.Children.Add(okBtn);
+            buttons.Children.Add(cancelBtn);
+            content.Children.Add(buttons);
+            mainStack.Children.Add(content);
+            outerBorder.Child = mainStack;
+            dialog.Content = outerBorder;
+            dialog.ShowDialog();
+        }
+
+        private void PasswordDisable_Click(object sender, MouseButtonEventArgs e)
+        {
+            _isPasswordSet = false;
+            _passwordHash = string.Empty;
+            _passwordHint = string.Empty;
+            SaveSettings();
+            UpdatePasswordChecks();
+            PasswordSubmenuPopup.IsOpen = false;
+            SettingsPopup.IsOpen = false;
+        }
+
+        private void UpdatePasswordChecks()
+        {
+            if (_isPasswordSet)
+            {
+                PasswordNewCheck.Visibility = Visibility.Visible;
+                PasswordDisableCheck.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                PasswordNewCheck.Visibility = Visibility.Collapsed;
+                PasswordDisableCheck.Visibility = Visibility.Visible;
+            }
+        }
+
+        private string HashPassword(string password)
+        {
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            return Convert.ToBase64String(bytes);
+        }
+
+        private void ShowPasswordOverlay()
+        {
+            if (_isPasswordSet)
+            {
+                // Hide vault while password window is showing
+                this.Hide();
+
+                var passWindow = new PasswordWindow(_passwordHash, _passwordHint);
+                passWindow.ShowDialog();
+
+                if (passWindow.IsAuthenticated)
+                {
+                    // Show vault after successful authentication
+                    this.Show();
+                }
+                else
+                {
+                    // User closed without authenticating — close the app
+                    Application.Current.Shutdown();
+                }
+            }
+        }
+
+        #endregion
+
+        #region Close on Launch
+
+        private bool _closeOnLaunch = true;
+
+        private void CloseOnLaunchMenu_Enter(object sender, MouseEventArgs e)
+        {
+            if (CloseOnLaunchSubmenuPopup != null)
+                CloseOnLaunchSubmenuPopup.IsOpen = true;
+        }
+
+        private void CloseOnLaunchMenu_Leave(object sender, MouseEventArgs e)
+        {
+            Dispatcher.InvokeAsync(async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(200);
+                if (!CloseOnLaunchMenuItem.IsMouseOver && !CloseOnLaunchSubmenuPopup.IsMouseOver)
+                {
+                    if (CloseOnLaunchSubmenuPopup != null)
+                        CloseOnLaunchSubmenuPopup.IsOpen = false;
+                }
+            }, System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        private void CloseOnLaunchSubmenu_Enter(object sender, MouseEventArgs e) { }
+
+        private void CloseOnLaunchSubmenu_Leave(object sender, MouseEventArgs e)
+        {
+            Dispatcher.InvokeAsync(async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(200);
+                if (!CloseOnLaunchMenuItem.IsMouseOver && !CloseOnLaunchSubmenuPopup.IsMouseOver)
+                {
+                    if (CloseOnLaunchSubmenuPopup != null)
+                        CloseOnLaunchSubmenuPopup.IsOpen = false;
+                }
+            }, System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        private void CloseOnLaunchEnable_Click(object sender, MouseButtonEventArgs e)
+        {
+            _closeOnLaunch = true;
+            SaveSettings();
+            UpdateCloseOnLaunchChecks();
+            CloseOnLaunchSubmenuPopup.IsOpen = false;
+            SettingsPopup.IsOpen = false;
+        }
+
+        private void CloseOnLaunchDisable_Click(object sender, MouseButtonEventArgs e)
+        {
+            _closeOnLaunch = false;
+            SaveSettings();
+            UpdateCloseOnLaunchChecks();
+            CloseOnLaunchSubmenuPopup.IsOpen = false;
+            SettingsPopup.IsOpen = false;
+        }
+
+        private void UpdateCloseOnLaunchChecks()
+        {
+            if (_closeOnLaunch)
+            {
+                CloseOnLaunchEnableCheck.Visibility = Visibility.Visible;
+                CloseOnLaunchDisableCheck.Visibility = Visibility.Collapsed;
+                CloseOnLaunchStatus.Text = "Enabled";
+            }
+            else
+            {
+                CloseOnLaunchEnableCheck.Visibility = Visibility.Collapsed;
+                CloseOnLaunchDisableCheck.Visibility = Visibility.Visible;
+                CloseOnLaunchStatus.Text = "Disabled";
+            }
+        }
+
+        #endregion
+
+        #region Settings Persistence
+
+        private void SaveSettings()
+        {
+            try
+            {
+                string dir = System.IO.Path.GetDirectoryName(_settingsPath)!;
+                if (!System.IO.Directory.Exists(dir))
+                    System.IO.Directory.CreateDirectory(dir);
+
+                string json = $"{{\"layout\":\"{_currentLayout}\",\"closeOnLaunch\":{_closeOnLaunch.ToString().ToLower()},\"passwordSet\":{_isPasswordSet.ToString().ToLower()},\"passwordHash\":\"{_passwordHash}\",\"passwordHint\":\"{_passwordHint}\"}}";
+                System.IO.File.WriteAllText(_settingsPath, json);
+            }
+            catch { }
+        }
+
+        private void LoadSettings()
+        {
+            try
+            {
+                if (System.IO.File.Exists(_settingsPath))
+                {
+                    string json = System.IO.File.ReadAllText(_settingsPath);
+
+                    // Load layout
+                    _currentLayout = ExtractJsonString(json, "layout");
+                    if (string.IsNullOrEmpty(_currentLayout)) _currentLayout = "clean";
+
+                    // Load close on launch
+                    string closeOnLaunch = ExtractJsonBool(json, "closeOnLaunch");
+                    _closeOnLaunch = closeOnLaunch != "false";
+
+                    // Load password
+                    string passwordSet = ExtractJsonBool(json, "passwordSet");
+                    _isPasswordSet = passwordSet == "true";
+                    _passwordHash = ExtractJsonString(json, "passwordHash");
+                    _passwordHint = ExtractJsonString(json, "passwordHint");
+                }
+            }
+            catch { }
+        }
+
+        private string ExtractJsonString(string json, string key)
+        {
+            int idx = json.IndexOf($"\"{key}\"");
+            if (idx < 0) return string.Empty;
+            int colon = json.IndexOf(':', idx);
+            int start = json.IndexOf('"', colon + 1);
+            int end = json.IndexOf('"', start + 1);
+            return json.Substring(start + 1, end - start - 1);
+        }
+
+        private string ExtractJsonBool(string json, string key)
+        {
+            int idx = json.IndexOf($"\"{key}\"");
+            if (idx < 0) return string.Empty;
+            int colon = json.IndexOf(':', idx);
+            int start = colon + 1;
+            while (start < json.Length && json[start] == ' ') start++;
+            int end = start;
+            while (end < json.Length && json[end] != ',' && json[end] != '}') end++;
+            return json.Substring(start, end - start).Trim();
         }
 
         #endregion

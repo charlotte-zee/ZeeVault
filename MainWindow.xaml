@@ -604,7 +604,7 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </ScrollViewer>
-                                    <!-- Drag & Drop Overlay -->
+                <!-- Drag & Drop Overlay -->
                 <Border x:Name="DropOverlay" Background="#D2080710" CornerRadius="10"
                         Visibility="Collapsed" IsHitTestVisible="False">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -830,6 +830,112 @@
                                 <!-- Separator -->
                                 <Border Height="1" Background="#15FFFFFF" Margin="8,2"/>
 
+                                <!-- Set Password -->
+                                <Border x:Name="PasswordMenuItem" Cursor="Hand"
+                                        Padding="12,10" CornerRadius="8" Background="Transparent"
+                                        MouseEnter="PasswordMenu_Enter" MouseLeave="PasswordMenu_Leave">
+                                    <Border.RenderTransform>
+                                        <TranslateTransform X="0"/>
+                                    </Border.RenderTransform>
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#20FFFFFF"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Border.Triggers>
+                                        <EventTrigger RoutedEvent="Border.MouseEnter">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                    To="#20FFFFFF" Duration="0:0:0.15"/>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                                     To="2" Duration="0:0:0.12"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                        <EventTrigger RoutedEvent="Border.MouseLeave">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                    To="Transparent" Duration="0:0:0.2"/>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                                     To="0" Duration="0:0:0.15"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Border.Triggers>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="&#x1F512;" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <TextBlock Grid.Column="1" Text="Set Password" Foreground="#F8FAFC" FontSize="12.5" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="&#x276F;" Foreground="#64748B" FontSize="11" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Close on Launch -->
+                                <Border x:Name="CloseOnLaunchMenuItem" Cursor="Hand"
+                                        Padding="12,10" CornerRadius="8" Background="Transparent"
+                                        MouseEnter="CloseOnLaunchMenu_Enter" MouseLeave="CloseOnLaunchMenu_Leave">
+                                    <Border.RenderTransform>
+                                        <TranslateTransform X="0"/>
+                                    </Border.RenderTransform>
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#20FFFFFF"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Border.Triggers>
+                                        <EventTrigger RoutedEvent="Border.MouseEnter">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                    To="#20FFFFFF" Duration="0:0:0.15"/>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                                     To="2" Duration="0:0:0.12"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                        <EventTrigger RoutedEvent="Border.MouseLeave">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                    To="Transparent" Duration="0:0:0.2"/>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                                     To="0" Duration="0:0:0.15"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Border.Triggers>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="&#x1F51A;" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Close on Launch" Foreground="#F8FAFC" FontSize="12.5"/>
+                                            <TextBlock x:Name="CloseOnLaunchStatus" Text="Enabled" Foreground="#64748B" FontSize="10" Margin="0,1,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2" Text="&#x276F;" Foreground="#64748B" FontSize="11" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Separator -->
+                                <Border Height="1" Background="#15FFFFFF" Margin="8,2"/>
+
                                 <!-- About -->
                                 <Border Cursor="Hand" MouseLeftButtonDown="About_Click"
                                         Padding="12,10" CornerRadius="8" Background="Transparent">
@@ -1016,6 +1122,172 @@
                                     <TextBlock Grid.Column="0" Text="&#x25A3;" FontSize="11" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBlock Grid.Column="1" Text="Cards" Foreground="#F8FAFC" FontSize="11.5" VerticalAlignment="Center"/>
                                     <TextBlock x:Name="LayoutCardsCheck" Grid.Column="2" Text="&#x2713;" Foreground="#6366F1" FontSize="12" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </Popup>
+
+                <!-- Set Password Submenu Popup -->
+                <Popup x:Name="PasswordSubmenuPopup" PlacementTarget="{x:Reference PasswordMenuItem}"
+                       Placement="Right" HorizontalOffset="-4" AllowsTransparency="True"
+                       StaysOpen="True" IsOpen="False"
+                       MouseEnter="PasswordSubmenu_Enter" MouseLeave="PasswordSubmenu_Leave">
+                    <Border Background="#F0202025" BorderBrush="#30FFFFFF" BorderThickness="1" CornerRadius="10"
+                            Padding="4" MinWidth="140">
+                        <StackPanel>
+                            <!-- New Password -->
+                            <Border Cursor="Hand" MouseLeftButtonDown="PasswordNew_Click"
+                                    Padding="10,7" CornerRadius="8" Background="Transparent">
+                                <Border.RenderTransform>
+                                    <TranslateTransform X="0"/>
+                                </Border.RenderTransform>
+                                <Border.Triggers>
+                                    <EventTrigger RoutedEvent="Border.MouseEnter">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="#30FFFFFF" Duration="0:0:0.1"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                    <EventTrigger RoutedEvent="Border.MouseLeave">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="Transparent" Duration="0:0:0.15"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Border.Triggers>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x2795;" FontSize="11" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Column="1" Text="New Password" Foreground="#F8FAFC" FontSize="11.5" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="PasswordNewCheck" Grid.Column="2" Text="&#x2713;" Foreground="#6366F1" FontSize="12" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Disable -->
+                            <Border Cursor="Hand" MouseLeftButtonDown="PasswordDisable_Click"
+                                    Padding="10,7" CornerRadius="8" Background="Transparent">
+                                <Border.RenderTransform>
+                                    <TranslateTransform X="0"/>
+                                </Border.RenderTransform>
+                                <Border.Triggers>
+                                    <EventTrigger RoutedEvent="Border.MouseEnter">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="#30FFFFFF" Duration="0:0:0.1"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                    <EventTrigger RoutedEvent="Border.MouseLeave">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="Transparent" Duration="0:0:0.15"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Border.Triggers>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x2716;" FontSize="11" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Column="1" Text="Disable" Foreground="#F8FAFC" FontSize="11.5" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="PasswordDisableCheck" Grid.Column="2" Text="&#x2713;" Foreground="#6366F1" FontSize="12" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </Popup>
+
+                <!-- Close on Launch Submenu Popup -->
+                <Popup x:Name="CloseOnLaunchSubmenuPopup" PlacementTarget="{x:Reference CloseOnLaunchMenuItem}"
+                       Placement="Right" HorizontalOffset="-4" AllowsTransparency="True"
+                       StaysOpen="True" IsOpen="False"
+                       MouseEnter="CloseOnLaunchSubmenu_Enter" MouseLeave="CloseOnLaunchSubmenu_Leave">
+                    <Border Background="#F0202025" BorderBrush="#30FFFFFF" BorderThickness="1" CornerRadius="10"
+                            Padding="4" MinWidth="140">
+                        <StackPanel>
+                            <!-- Enable -->
+                            <Border Cursor="Hand" MouseLeftButtonDown="CloseOnLaunchEnable_Click"
+                                    Padding="10,7" CornerRadius="8" Background="Transparent">
+                                <Border.RenderTransform>
+                                    <TranslateTransform X="0"/>
+                                </Border.RenderTransform>
+                                <Border.Triggers>
+                                    <EventTrigger RoutedEvent="Border.MouseEnter">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="#30FFFFFF" Duration="0:0:0.1"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                    <EventTrigger RoutedEvent="Border.MouseLeave">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="Transparent" Duration="0:0:0.15"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Border.Triggers>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x25CB;" FontSize="11" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Column="1" Text="Enable" Foreground="#F8FAFC" FontSize="11.5" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="CloseOnLaunchEnableCheck" Grid.Column="2" Text="&#x2713;" Foreground="#6366F1" FontSize="12" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Disable -->
+                            <Border Cursor="Hand" MouseLeftButtonDown="CloseOnLaunchDisable_Click"
+                                    Padding="10,7" CornerRadius="8" Background="Transparent">
+                                <Border.RenderTransform>
+                                    <TranslateTransform X="0"/>
+                                </Border.RenderTransform>
+                                <Border.Triggers>
+                                    <EventTrigger RoutedEvent="Border.MouseEnter">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="#30FFFFFF" Duration="0:0:0.1"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                    <EventTrigger RoutedEvent="Border.MouseLeave">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="Transparent" Duration="0:0:0.15"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Border.Triggers>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x25CB;" FontSize="11" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Column="1" Text="Disable" Foreground="#F8FAFC" FontSize="11.5" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="CloseOnLaunchDisableCheck" Grid.Column="2" Text="&#x2713;" Foreground="#6366F1" FontSize="12" VerticalAlignment="Center" Visibility="Collapsed"/>
                                 </Grid>
                             </Border>
                         </StackPanel>

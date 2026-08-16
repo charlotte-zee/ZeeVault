@@ -14,12 +14,12 @@ RequestExecutionLevel admin
 BrandingText "ZeeVault Installer"
 
 ; ── Version Info ─────────────────────────────────────────────────
-VIProductVersion "1.3.0.0"
+VIProductVersion "1.3.1.0"
 VIAddVersionKey "ProductName" "ZeeVault"
 VIAddVersionKey "CompanyName" "Charlotte Zee"
 VIAddVersionKey "FileDescription" "ZeeVault Installer"
-VIAddVersionKey "FileVersion" "1.3.0.0"
-VIAddVersionKey "ProductVersion" "1.3.0"
+VIAddVersionKey "FileVersion" "1.3.1.0"
+VIAddVersionKey "ProductVersion" "1.3.1"
 VIAddVersionKey "LegalCopyright" "Copyright (c) 2026 Charlotte Zee / ZenytheLabs"
 
 ; ── Interface ────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ Section "ZeeVault (required)" SecMain
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ZeeVault" \
         "Publisher" "Charlotte Zee / ZenytheLabs"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ZeeVault" \
-        "DisplayVersion" "1.3.0"
+        "DisplayVersion" "1.3.1"
     WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ZeeVault" \
         "NoModify" 1
     WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ZeeVault" \
