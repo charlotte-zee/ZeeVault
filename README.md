@@ -21,6 +21,7 @@ A sleek, modern app launcher and vault for Windows. Organize your games, tools, 
 - **Layout Styles** — Switch between Clean (minimal icon + title) and Cards (full details with category, extension, border) layouts via Settings
 - **Auto-Update** — Automatically checks for new versions on startup, with in-app download and install
 - **Settings Menu** — Access update checks, layout switching, and About info from the gear icon
+- **Password Protection** — Lock your vault with a password. Includes password hints and humorous roast messages when you forget
 - **Single Instance** — Only one ZeeVault window at a time
 - **Custom Titlebar** — Animated minimize, maximize, and close buttons
 - **Dark Theme** — Beautiful dark UI with glassmorphism effects
@@ -62,6 +63,7 @@ dotnet run
 - **Icon Extraction** uses Windows Shell API (`SHGetFileInfo`) and `Icon.ExtractAssociatedIcon` to pull real app icons
 - **Start Menu Drag-and-Drop** resolves Windows Shell IDList Array and FileDrop AUMIDs to add Store and Win32 apps
 - **Category System** lets you tag anything as Games, Tools, or Files with color-coded badges
+- **Password Protection** uses SHA256 hashing to securely store your password. Set a hint to help remember — or enjoy the roast messages when you forget
 
 ## License
 
